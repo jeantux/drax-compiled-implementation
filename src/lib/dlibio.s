@@ -2,22 +2,22 @@
 
 .global dsys_out
 
+dsys_out:
+  call   str_size
+  mov    $1, %eax
+  mov    $1, %edi
+  syscall
+  ret
+
 str_size:
-  mov    %rsi, %rdx
+  mov    %esi, %edx
 
 next_char:
-  cmpb   $0x0,(%rdx)
+  cmpb   $0x0,(%edx)
   je     finish
-  inc    %rdx
+  inc    %edx
   jmp    next_char
 
 finish:
-  sub    %rsi, %rdx
-  ret
-
-dsys_out:
-  call   str_size
-  mov    $1, %rax
-  mov    $1, %rdi
-  syscall
+  sub    %esi, %edx
   ret

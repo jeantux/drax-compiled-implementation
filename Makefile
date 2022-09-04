@@ -74,4 +74,5 @@ corelibs:
 	as src/lib/dlibio.s -o bin/libdrax.so
 
 clean:
-	rm -rf ./bin/$(APP)
+	rm ./bin/$(APP)
+	rm ./bin/*.so
