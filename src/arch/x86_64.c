@@ -27,8 +27,8 @@ int dx_x86_64_exit() {
   );
 }
 
-static int dx_print(dline_pair* e) {
-  df_asm_gen("mov $%s, %%rsi\n",e->command);
+static int dx_PUTS(dline_pair* e) {
+  df_asm_gen("mov $%s, %%esi\n",e->command);
   df_asm_gen("call dsys_out\n");
 
   return 0;
@@ -49,7 +49,7 @@ int get_asm_code(dline_pair* v) {
     case DOP_MOV: return df_asm_gen("mov ");
     case DOP_EXIT: return dx_x86_64_exit(v);
     case DOP_CONST: return dx_const(v);
-    case DOP_PRINT: return dx_print(v);
+    case DOP_PUTS: return dx_PUTS(v);
   
     default: return 0;
   }

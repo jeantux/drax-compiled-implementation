@@ -4,12 +4,13 @@
 
 #include "dparser.h"
 #include "dlex.h"
+#include "dcompiler.h"
 
 #define LOCAL_SIZE_FACTOR 30
 
 parser_state parser;
 parser_builder* current = NULL;
-int dg_const_def = 0;
+d_ast* gsda;
 
 static void init_parser() {
 // init parser
@@ -70,6 +71,8 @@ static char* get_lex_str(const char* chars, int length) {
 
 #define GET_CURRENT_TOKEN() parser.current.type
 
+#define DPUSH_AST(t, v) push_d_ast(gsda, t, (d_byte_def) v)
+
 static void get_next_token() {
   parser.prev = parser.current;
 
@@ -113,11 +116,12 @@ void process_binary(bool v) {
     case DTK_BE:
     case DTK_LS:
     case DTK_LE:
-    case DTK_ADD:
-    case DTK_SUB:
-    case DTK_MUL:
-    case DTK_DIV:
     case DTK_CONCAT:
+      break;
+    case DTK_ADD: DPUSH_AST(DAT_ADD, NULL); break;
+    case DTK_SUB: DPUSH_AST(DAT_SUB, NULL); break;
+    case DTK_MUL: DPUSH_AST(DAT_MUL, NULL); break;
+    case DTK_DIV: DPUSH_AST(DAT_DIV, NULL); break;
     default: return;
   }
 }
@@ -148,6 +152,8 @@ void process_list(bool v) {
 
 void process_number(bool v) {
   UNUSED(v);
+  double value = strtod(parser.prev.first, NULL);
+  DPUSH_AST(DAT_NUMBER, value);
 }
 
 void process_or(bool v) {
@@ -204,35 +210,11 @@ static void if_definition() {
   UNUSED(NULL);
 }
 
-
-/* PRINT DEFINITION */
-
-static int dx_print_data(dlines_op* v, char* name, char* value) {
-  push_line_op(v, new_line_pair(DOP_MRK_ID, name));
-  push_line_op(v, new_line_pair(DOP_CONST, value));
-  return 0;
+static void puts_definition() {
+  DPUSH_AST(DAT_PUTS, get_lex_str(parser.current.first + 1, parser.current.length - 2));
 }
 
-static int dx_print_instruction(dlines_op* v, char* var) {
-  push_line_op(v, new_line_pair(DOP_PRINT, var));
-  return 0;
-}
-
-static int dx_print_str(dlcode_state* lcs, const char* var, char* content) {
-  dx_print_data(lcs->data_section, (char*) var, content);
-  dx_print_instruction(lcs->start_global, (char*) var);
-  return 0;
-}
-
-static void print_definition(dlcode_state* lcs) {
-  dg_const_def++;
-  char* var;
-  asprintf(&var, "DV_%i", dg_const_def);
-  dx_print_str(lcs, var, get_lex_str(parser.current.first + 1, parser.current.length - 2));
-  get_next_token();
-}
-
-static void process(dlcode_state* lcs) {
+static void process() {
   switch (GET_CURRENT_TOKEN()) {
     case DTK_FUN: {
       get_next_token();
@@ -258,7 +240,7 @@ static void process(dlcode_state* lcs) {
       
     case DTK_PUTS: {
       get_next_token();
-      print_definition(lcs);
+      puts_definition();
       break;
     }
 
@@ -275,7 +257,8 @@ static void process(dlcode_state* lcs) {
   }
 }
 
-int __build__(dlcode_state* lcs, const char* source) {
+int __parser__(d_ast* sda, const char* source) {
+  gsda = sda;
   init_lexan(source);
   init_parser();
   
@@ -285,7 +268,7 @@ int __build__(dlcode_state* lcs, const char* source) {
   get_next_token();
 
   while (GET_CURRENT_TOKEN() != DTK_EOF) {
-    process(lcs);
+    process();
   }
 
   if (parser.has_error) {

@@ -9,10 +9,10 @@
 #define SD_GNU_STR    " \"%s\\n\""
 #define SD_GNU_ENT    "_start"
 
-#define SDCALL_WRITE  "mov $1,    %%rax"
-#define SDCALL_STDOUT "mov $1,    %%rdi"
-#define SDCALL_EXIT   "mov $60,   %%rax"
-#define SDCODE_RETURN "xor %%rdi, %%rdi"
+#define SDCALL_WRITE  "mov $1,    %%eax"
+#define SDCALL_STDOUT "mov $1,    %%edi"
+#define SDCALL_EXIT   "mov $60,   %%eax"
+#define SDCODE_RETURN "xor %%edi, %%edi"
 #define SDSYSCALL     "syscall"FL
 
 #define GAS_ASCII     ".asciz"

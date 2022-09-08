@@ -5,6 +5,7 @@
 #include "dlex.h"
 #include "ddefs.h"
 #include "dlowcode.h"
+#include "dcompiler.h"
 
 #define callback_table(n) void n(bool b);
 
@@ -58,7 +59,7 @@ typedef struct parser_builder {
   int curr_level;
 } parser_builder;
 
-int __build__(dlcode_state* lcs, const char* source);
+int __parser__(d_ast* sda, const char* source);
 
 void mark_compiler_roots();
 

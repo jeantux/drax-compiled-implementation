@@ -10,7 +10,7 @@ typedef enum dlcode_op {
   DOP_LABEL,     /* [label]: */
 
   DOP_CONST,     /* reg. 'value' */
-  DOP_PRINT,
+  DOP_PUTS,
   DOP_VAR,
 
   DOP_SYSCALL,

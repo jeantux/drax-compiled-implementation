@@ -18,8 +18,11 @@ static int process_file(char** argv, const char* outn) {
   }
 
   dlcode_state* lcs = __lowcode_init__();
-  __build__(lcs, content);
-  __lowcode_process__(lcs, outn);
+  d_ast* sda = new_d_ast(); /* Shared Drax AST */
+
+
+  __parser__(sda, content);
+  __compile__(sda, lcs, outn);
   return 0;
 }
 
