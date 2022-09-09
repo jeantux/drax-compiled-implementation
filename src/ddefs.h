@@ -7,11 +7,15 @@
 
 /* Definitions */
 
+typedef unsigned long d_byte_def;
+
 #define UNUSED(x) (void)(x)
 
 #define UNUSED2(a, b) UNUSED(a); UNUSED(b)
 
 #define UNUSED3(a, b, c) UNUSED2(a, b); UNUSED(c)
+
+#define CAST_STRING(v)  (char*) v
 
 #define ASMFN1    "icode.s"
 

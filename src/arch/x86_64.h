@@ -28,6 +28,6 @@ int dx_x86_64_start();
 
 int dx_x86_64_exit();
 
-int get_asm_code(dline_pair* v) ;
+int get_asm_code(dline_cmd* v) ;
 
 #endif

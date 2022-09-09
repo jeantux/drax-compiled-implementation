@@ -14,9 +14,9 @@
 
 #define DCCase(t) case t:
 
-#define DPUSH(l, t, s)   push_line_op(v, new_line_pair(t, s));
+#define DPUSH(l, t, r, v)   push_line_op(l, new_line_cmd(t, r, (d_byte_def) v));
 
-#define GET_STRING_VAL() ((char*) gcA->val[gcA->pc-1])
+#define GET_STRING_VAL() (CAST_STRING(gcA->val[gcA->pc-1]))
 
 int dg_const_def = 0;
 dlcode_state* glcs;
@@ -59,9 +59,9 @@ int push_d_ast(d_ast* v, d_ast_op op, d_byte_def val) {
 /**
  * Define const on section data
  */
-static int dc_puts_data(dlines_op* v, char* name, char* value) {
-  DPUSH(v, DOP_MRK_ID, name);
-  DPUSH(v, DOP_CONST, value);
+static int dc_puts_data(dlines_cmd* v, char* name, char* value) {
+  DPUSH(v, DOP_MRK_ID, DRG_NONE, name);
+  DPUSH(v, DOP_CONST,  DRG_NONE, value);
   return 0;
 }
 /**
@@ -69,8 +69,8 @@ static int dc_puts_data(dlines_op* v, char* name, char* value) {
  * 
  * Using Data section
  */
-static int dc_puts_instruction(dlines_op* v, char* var) {
-  DPUSH(v, DOP_PUTS, var);
+static int dc_puts_instruction(dlines_cmd* v, char* var) {
+  DPUSH(v, DOP_PUTS, DRG_NONE, var);
   return 0;
 }
 
@@ -80,43 +80,30 @@ static int dc_puts_str(const char* var, char* content) {
   return 0;
 }
 
-static int dc_puts() {
+static void dc_puts() {
   dg_const_def++;
   char* var;
   asprintf(&var, "DV_%i", dg_const_def);
   dc_puts_str(var, GET_STRING_VAL());
-  return 0;
 }
 
-/* Code Generation */
-static int dx_code_generation(const char* outn) {
-  if (glcs) {
-    dx_init_data_section();
-    write_lines_to_buffer(glcs->data_section);
-
-    dx_init_text_section();
-    write_lines_to_buffer(glcs->text_section);
-
-    dx_init_start();
-    write_lines_to_buffer(glcs->start_global);
-    
-    dx_init_exit();
-
-    system("as " ASMFN1 " -o "ASMFO0);
-    system(get_ln_cmd(outn));
-  }
-
-  system("rm "ASMFN1);
-  system("rm "ASMFO0);
-
-  return 0;
+// movl $10, %eax
+// movl $10, %ebx
+// addl %ebx, %eax
+static int dc_arith_op() {
+  // DPUSH(v, DOP_MOV, value);
 }
 
+/**
+ * Main Compiler Process
+ * 
+ */
 static int compiler_process() {
   gcA->pc = 0;
   while (gcA->pc < gcA->len) {
     DCSwitch() {
       DCCase(DAT_ADD) {
+
         break;
       }
       DCCase(DAT_SUB) {
@@ -146,6 +133,30 @@ static int compiler_process() {
         break;
     }
   }
+
+  return 0;
+}
+
+/* Code Generation */
+static int dx_code_generation(const char* outn) {
+  if (glcs) {
+    dx_init_data_section();
+    write_lines_to_buffer(glcs->data_section);
+
+    dx_init_text_section();
+    write_lines_to_buffer(glcs->text_section);
+
+    dx_init_start();
+    write_lines_to_buffer(glcs->start_global);
+    
+    dx_init_exit();
+
+    system("as " ASMFN1 " -o "ASMFO0);
+    system(get_ln_cmd(outn));
+  }
+
+  system("rm "ASMFN1);
+  system("rm "ASMFO0);
 
   return 0;
 }

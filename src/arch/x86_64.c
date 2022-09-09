@@ -27,22 +27,22 @@ int dx_x86_64_exit() {
   );
 }
 
-static int dx_PUTS(dline_pair* e) {
-  df_asm_gen("mov $%s, %%esi\n",e->command);
+static int dx_PUTS(dline_cmd* e) {
+  df_asm_gen("mov $%s, %%esi\n", CAST_STRING(e->value));
   df_asm_gen("call dsys_out\n");
 
   return 0;
 }
 
-static int dx_const(dline_pair* e) {
-  return df_asm_gen(GAS_ASCII SD_GNU_STR FL, e->command);
+static int dx_const(dline_cmd* e) {
+  return df_asm_gen(GAS_ASCII SD_GNU_STR FL, CAST_STRING(e->value));
 }
 
-static int dx_label(dline_pair* e) {
-  return df_asm_gen("%s: ", e->command);
+static int dx_label(dline_cmd* e) {
+  return df_asm_gen("%s: ", CAST_STRING(e->value));
 }
 
-int get_asm_code(dline_pair* v) {
+int get_asm_code(dline_cmd* v) {
   switch (v->op) {
     case DOP_MRK_ID:
     case DOP_LABEL: return dx_label(v);

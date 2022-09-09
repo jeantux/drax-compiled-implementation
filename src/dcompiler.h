@@ -6,8 +6,6 @@
 #include "dlowcode.h"
 #include "ddefs.h"
 
-typedef unsigned long d_byte_def;
-
 typedef enum d_ast_op {
   DAT_NUMBER, /* Generic number */
 

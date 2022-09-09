@@ -25,7 +25,7 @@ int dx_init_exit() {
  * Convert lines_op to asm format
  * 
  */
-int write_lines_to_buffer(dlines_op* v) {
+int write_lines_to_buffer(dlines_cmd* v) {
   for (int i = 0; i < v->len; i++) {
     get_asm_code(&v->dlpair[i]);    
   }

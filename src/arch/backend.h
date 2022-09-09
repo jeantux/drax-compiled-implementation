@@ -13,6 +13,6 @@ int dx_init_start();
 
 int dx_init_exit();
 
-int write_lines_to_buffer(dlines_op* v);
+int write_lines_to_buffer(dlines_cmd* v);
 
 #endif
