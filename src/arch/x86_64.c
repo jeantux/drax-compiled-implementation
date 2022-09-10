@@ -27,8 +27,8 @@ static const char* dxasm_cmd_table(dlcode_op t) {
   switch (t) {
     case DOP_ADD:  return DMC("add");
     case DOP_SUB:  return DMC("sub");
-    case DOP_MUL:  return DMC("mul");
-    case DOP_DIV:  return DMC("div");
+    case DOP_MUL:  return DMC("imul");
+    case DOP_DIV:  return DMC("idiv"); /* Invalid */
     case DOP_MOV:  return DMC("mov");
     case DOP_PUSH: return DMC("push");
     case DOP_POP:  return DMC("pop");
@@ -77,14 +77,19 @@ static int dx_label(dline_cmd* e) {
 }
 
 static int dx_x86_64_mov(dline_cmd* e) {
-  // mov fixed value
-  char* var;
-  asprintf(&var, "%lu", e->value);
-
   df_asm_gen(dxasm_cmd_table(e->op));
-  df_asm_gen(var);
+  
+  if (e->rg_qtt == 1) {
+    char* var;
+    asprintf(&var, DNUM_ASM_REPR, e->value);
+    df_asm_gen(var);
+  } else {
+    df_asm_gen(dxasm_reg_table(e->rg1));
+  }
+
+
   df_asm_gen(",");
-  df_asm_gen(dxasm_reg_table(e->rg));
+  df_asm_gen(dxasm_reg_table(e->rg0));
 
   df_asm_gen(FL);
 
@@ -94,17 +99,34 @@ static int dx_x86_64_mov(dline_cmd* e) {
 static int dx_x86_64_arith(dline_cmd* e) {
   // mov fixed value
   char* var;
-  asprintf(&var, "%lu", e->value);
+  asprintf(&var, DNUM_ASM_REPR, e->value);
 
   df_asm_gen(dxasm_cmd_table(e->op));
   df_asm_gen(var);
   df_asm_gen(",");
-  df_asm_gen(dxasm_reg_table(e->rg));
+  df_asm_gen(dxasm_reg_table(e->rg0));
 
   df_asm_gen(FL);
 
   return 0;
 }
+
+static int dx_x86_64_push(dline_cmd* e) {
+  df_asm_gen(dxasm_cmd_table(e->op));
+  df_asm_gen(dxasm_reg_table(e->rg0));
+  df_asm_gen(FL);
+
+  return 0;
+}
+
+static int dx_x86_64_pop(dline_cmd* e) {
+  df_asm_gen(dxasm_cmd_table(e->op));
+  df_asm_gen(dxasm_reg_table(e->rg0));
+  df_asm_gen(FL);
+
+  return 0;
+}
+
 
 int get_asm_code(dline_cmd* v) {
   switch (v->op) {
@@ -115,6 +137,8 @@ int get_asm_code(dline_cmd* v) {
     case DOP_SUB:
     case DOP_MUL:
     case DOP_DIV: return dx_x86_64_arith(v);
+    case DOP_PUSH: return dx_x86_64_push(v);
+    case DOP_POP: return dx_x86_64_pop(v);
     case DOP_EXIT: return dx_x86_64_exit(v);
     case DOP_CONST: return dx_x86_64_const(v);
     case DOP_PUTS: return dx_x86_64_puts(v);

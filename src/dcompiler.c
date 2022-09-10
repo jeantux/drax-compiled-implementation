@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "dcompiler.h"
 #include "dlowcode.h"
@@ -14,7 +15,9 @@
 
 #define DCCase(t) case t:
 
-#define DPUSH(l, t, r, v)   push_line_op(l, new_line_cmd(t, r, (d_byte_def) v));
+#define DPUSH_VALUE(l, t, r, v)   push_line_op(l, new_line_cmd(t, r, DRG_NONE, (d_byte_def) v));
+
+#define DPUSH_RGX(l, t, r0, r1)   push_line_op(l, new_line_cmd(t, r0, r1, 0));
 
 #define GET_PREV_VAL(_idx)  gcA->val[gcA->pc - (1 + _idx)]
 
@@ -23,17 +26,7 @@
 int dg_const_def = 0;
 dlcode_state* glcs;
 d_ast* gcA;
-
-static char* get_ln_cmd(const char* name) {
-  const char* fcmd = ASMLD " -s "ASMFO0 " "ASMLIBS " -o ";
-  int sz = strlen(fcmd) + strlen(name) + 1;
-  char* cmd = (char*) calloc(sizeof(char), sz);
-
-  strcat(cmd, fcmd);
-  strcat(cmd, name);
-  cmd[sz] = '\0';
-  return cmd;
-}
+darith_stack* garith_stack;
 
 /* Stack Helpers */
 
@@ -62,8 +55,8 @@ int push_d_ast(d_ast* v, d_ast_op op, d_byte_def val) {
  * Define const on section data
  */
 static int dc_puts_data(dlines_cmd* v, char* name, char* value) {
-  DPUSH(v, DOP_MRK_ID, DRG_NONE, name);
-  DPUSH(v, DOP_CONST,  DRG_NONE, value);
+  DPUSH_VALUE(v, DOP_MRK_ID, DRG_NONE, name);
+  DPUSH_VALUE(v, DOP_CONST,  DRG_NONE, value);
   return 0;
 }
 /**
@@ -72,7 +65,7 @@ static int dc_puts_data(dlines_cmd* v, char* name, char* value) {
  * Using Data section
  */
 static int dc_puts_instruction(dlines_cmd* v, char* var) {
-  DPUSH(v, DOP_PUTS, DRG_NONE, var);
+  DPUSH_VALUE(v, DOP_PUTS, DRG_NONE, var);
   return 0;
 }
 
@@ -89,9 +82,81 @@ static void dc_puts() {
   dc_puts_str(var, GET_STRING_VAL());
 }
 
+/* Arith Stack Helpers */
+static void arith_push(dlcode_register crgx) {
+  garith_stack->count++;
+  garith_stack->rgx[garith_stack->count-1] = crgx;
+}
+
+static dlcode_register arith_pop() {
+  if (garith_stack->count <= 0) {
+    return DRG_NONE;
+  }
+
+  garith_stack->count--;
+  return garith_stack->rgx[garith_stack->count];
+}
+
+/* Main Atith. process */
 static void dc_arith_op(dlcode_op t_op) {
-  DPUSH(glcs->start_global, DOP_MOV, DRG_RX0, GET_PREV_VAL(2));
-  DPUSH(glcs->start_global, t_op,    DRG_RX0, GET_PREV_VAL(1));
+  dlcode_register rgx = arith_pop();
+
+  if (DRG_NONE == rgx) {
+    // register must free
+    DPUSH_VALUE(glcs->start_global, DOP_POP, DRG_RX0, NULL);
+    DPUSH_VALUE(glcs->start_global, DOP_POP, DRG_RX1, NULL);
+    DPUSH_RGX(glcs->start_global,   t_op,    DRG_RX0, DRG_RX1);
+    arith_push(DRG_RX0);
+    return;
+  }
+
+  DPUSH_VALUE(glcs->start_global, DOP_POP, DRG_RX0, NULL);
+  DPUSH_RGX(glcs->start_global,   t_op,    DRG_RX0, DRG_RX1);
+}
+
+static void debugger_ast() {
+  gcA->pc = 0;
+  while (gcA->pc < gcA->len) {
+    DCSwitch() {
+      DCCase(DAT_ADD) {
+        printf("[add]\n");
+        break;
+      }
+      DCCase(DAT_SUB) {
+        printf("[sub]\n");
+        break;
+      }
+      DCCase(DAT_MUL) {
+        printf("[mul]\n");
+        break;
+      }
+      DCCase(DAT_DIV) {
+        printf("[div]\n");
+        break;
+      }
+      DCCase(DAT_CALL) {
+        printf("[call]\n");
+        break;
+      }
+      DCCase(DAT_CONST) {
+        printf("[const]\n");
+        break;
+      }
+      DCCase(DAT_PUTS) {
+        printf("[puts]\n");
+        break;
+      }
+      DCCase(DAT_VAR) {
+        printf("[var]\n");
+        break;
+      }
+      DCCase(DAT_NUMBER) {
+        printf("NUM => [%lu]\n", GET_PREV_VAL(0));
+      }
+      default:
+        break;
+    }
+  }
 }
 
 /**
@@ -131,6 +196,11 @@ static int compiler_process() {
       DCCase(DAT_VAR) {
         break;
       }
+      DCCase(DAT_NUMBER) {
+        DPUSH_VALUE(glcs->start_global, DOP_MOV,  DRG_RX0, GET_PREV_VAL(0));
+        DPUSH_VALUE(glcs->start_global, DOP_PUSH, DRG_RX0, NULL);
+        break;
+      }
       
       default:
         break;
@@ -140,36 +210,17 @@ static int compiler_process() {
   return 0;
 }
 
-/* Code Generation */
-static int dx_code_generation(const char* outn) {
-  if (glcs) {
-    dx_init_data_section();
-    write_lines_to_buffer(glcs->data_section);
-
-    dx_init_text_section();
-    write_lines_to_buffer(glcs->text_section);
-
-    dx_init_start();
-    write_lines_to_buffer(glcs->start_global);
-    
-    dx_init_exit();
-
-    system("as " ASMFN1 " -o "ASMFO0);
-    system(get_ln_cmd(outn));
-  }
-
-  // system("rm "ASMFN1);
-  system("rm "ASMFO0);
-
-  return 0;
-}
-
 /* Compiler Call */
 int __compile__(d_ast* sda, dlcode_state* lcs, const char* outn) {
   glcs = lcs;
   gcA = sda;
 
+  garith_stack = (darith_stack*) malloc(sizeof(darith_stack));
+  garith_stack->count = 0;
+  garith_stack->rgx = (dlcode_register*) malloc(sizeof(dlcode_register) * D_ARITH_STACK_SIZE);
+
+  debugger_ast();
   compiler_process();
-  dx_code_generation(outn);
+  dx_code_generation(glcs, outn);
   return 0;
 }

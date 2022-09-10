@@ -9,6 +9,7 @@
 #define SPACE         " "
 
 #define SD_GNU_STR    " \"%s\\n\""
+#define DNUM_ASM_REPR "$%lu"
 #define SD_GNU_ENT    "_start"
 
 #define SDCALL_WRITE  "mov $1,    %%eax"

@@ -24,25 +24,27 @@ int push_line_op(dlines_cmd* v, dline_cmd* line) {
   v->len++;
   if (v->len >= v->cap) {
     v->cap += LINE_OP_SIZE;
-    v->dlpair = realloc(v->dlpair, v->cap * sizeof(dline_cmd));
+    v->dlcurr_cmd = realloc(v->dlcurr_cmd, v->cap * sizeof(dline_cmd));
   }
 
-  v->dlpair[v->len -1] = *line;
+  v->dlcurr_cmd[v->len -1] = *line;
   return 0;
 }
 
 static dlines_cmd* new_lines_cmd() {
   dlines_cmd* v = (dlines_cmd*) malloc(sizeof(dlines_cmd));
-  v->dlpair = (dline_cmd*) malloc(sizeof(dline_cmd) * LINE_OP_SIZE);
+  v->dlcurr_cmd = (dline_cmd*) malloc(sizeof(dline_cmd) * LINE_OP_SIZE);
   v->len = 0;
   v->cap = LINE_OP_SIZE;
   return v;
 }
 
-dline_cmd* new_line_cmd(dlcode_op t, dlcode_register r, d_byte_def v) {
+dline_cmd* new_line_cmd(dlcode_op t, dlcode_register r0, dlcode_register r1, d_byte_def v) {
   dline_cmd* l = (dline_cmd*) malloc(sizeof(dline_cmd));
+  l->rg_qtt = r1 == DRG_NONE ? 1 : 2;
   l->op = t;
-  l->rg = r;
+  l->rg0 = r0;
+  l->rg1 = r1;
   l->value = v;
   return l;
 }

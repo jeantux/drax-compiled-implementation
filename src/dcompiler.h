@@ -6,6 +6,13 @@
 #include "dlowcode.h"
 #include "ddefs.h"
 
+/* Arith Stack */
+#define D_ARITH_STACK_SIZE 1024
+
+#define DCSwitch() switch (gcA->op[gcA->pc++])
+
+#define DCCase(t) case t:
+
 typedef enum d_ast_op {
   DAT_NUMBER, /* Generic number */
   DAT_INT,
@@ -27,6 +34,11 @@ typedef struct d_ast {
   int len;
   int cap;
 } d_ast;
+
+typedef struct darith_stack {
+  dlcode_register* rgx;
+  int count;
+} darith_stack;
 
 d_ast* new_d_ast();
 

@@ -71,7 +71,7 @@ config:
 	mkdir bin
 
 corelibs:
-	as src/lib/dlibio.s -o bin/libdrax.so
+	as --32 src/lib/dlibio.s -o bin/libdrax.so
 
 clean:
 	rm ./bin/$(APP)

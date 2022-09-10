@@ -17,18 +17,16 @@ typedef unsigned long d_byte_def;
 
 #define CAST_STRING(v)  (char*) v
 
-#define ASMFN1    "icode.s"
+#define CAST_INT(v)  (int) v
 
-#define ASMFO0    "icode.o"
+#define CAST_FLOAT(v)  (double) v
 
-#define ASMLD     "ld"
+#define ASMDFD    "icode"
+
+#define ASMFN1    ASMDFD".s"
+
+#define ASMFO0    ASMDFD".o"
 
 #define ASMLIBS   "bin/libdrax.so" /* Development */
-
-#define DOF_DATA  ".ddata"
-
-#define DOF_TEXT  ".dtext"
-
-#define DOF_START ".dstart"
 
 #endif

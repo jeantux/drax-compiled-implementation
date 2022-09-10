@@ -40,13 +40,15 @@ typedef enum dlcode_op {
 
 typedef struct dline_cmd {
   dlcode_op op;
-  dlcode_register rg;
+  int rg_qtt;
+  dlcode_register rg0;
+  dlcode_register rg1;
   d_byte_def value;
 } dline_cmd;
 
 
 typedef struct dlines_cmd {
-  dline_cmd* dlpair;
+  dline_cmd* dlcurr_cmd;
   int len;
   int cap;
 } dlines_cmd;
@@ -63,6 +65,6 @@ dlcode_state* __lowcode_init__();
 
 int push_line_op(dlines_cmd* v, dline_cmd* line);
 
-dline_cmd* new_line_cmd(dlcode_op t, dlcode_register r, d_byte_def v);
+dline_cmd* new_line_cmd(dlcode_op t, dlcode_register r0, dlcode_register r1, d_byte_def v);
 
 #endif

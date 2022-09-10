@@ -27,7 +27,6 @@ static int process_file(char** argv, const char* outn) {
 }
 
 int main(int argc, char** argv) {
-
   int t;
   char* _outn = parse_flags(&t, argc, argv);
   
