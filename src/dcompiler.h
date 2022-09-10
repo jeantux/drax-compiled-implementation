@@ -8,10 +8,8 @@
 
 typedef enum d_ast_op {
   DAT_NUMBER, /* Generic number */
-
   DAT_INT,
   DAT_FLOAT,
-
   DAT_ADD,
   DAT_SUB,
   DAT_MUL,

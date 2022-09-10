@@ -16,7 +16,9 @@
 
 #define DPUSH(l, t, r, v)   push_line_op(l, new_line_cmd(t, r, (d_byte_def) v));
 
-#define GET_STRING_VAL() (CAST_STRING(gcA->val[gcA->pc-1]))
+#define GET_PREV_VAL(_idx)  gcA->val[gcA->pc - (1 + _idx)]
+
+#define GET_STRING_VAL()    (CAST_STRING(GET_PREV_VAL(0)))
 
 int dg_const_def = 0;
 dlcode_state* glcs;
@@ -87,11 +89,9 @@ static void dc_puts() {
   dc_puts_str(var, GET_STRING_VAL());
 }
 
-// movl $10, %eax
-// movl $10, %ebx
-// addl %ebx, %eax
-static int dc_arith_op() {
-  // DPUSH(v, DOP_MOV, value);
+static void dc_arith_op(dlcode_op t_op) {
+  DPUSH(glcs->start_global, DOP_MOV, DRG_RX0, GET_PREV_VAL(2));
+  DPUSH(glcs->start_global, t_op,    DRG_RX0, GET_PREV_VAL(1));
 }
 
 /**
@@ -103,16 +103,19 @@ static int compiler_process() {
   while (gcA->pc < gcA->len) {
     DCSwitch() {
       DCCase(DAT_ADD) {
-
+        dc_arith_op(DOP_ADD);
         break;
       }
       DCCase(DAT_SUB) {
+        dc_arith_op(DOP_SUB);
         break;
       }
       DCCase(DAT_MUL) {
+        dc_arith_op(DOP_MUL);
         break;
       }
       DCCase(DAT_DIV) {
+        dc_arith_op(DOP_DIV);
         break;
       }
       DCCase(DAT_CALL) {
@@ -155,7 +158,7 @@ static int dx_code_generation(const char* outn) {
     system(get_ln_cmd(outn));
   }
 
-  system("rm "ASMFN1);
+  // system("rm "ASMFN1);
   system("rm "ASMFO0);
 
   return 0;

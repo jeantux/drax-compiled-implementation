@@ -6,10 +6,10 @@
 
 typedef enum dlcode_register {
   DRG_NONE,
-  DRG_RX0,    /* intel EAX */
-  DRG_RX1,    /* intel EBX */
-  DRG_RX2,    /* intel ECX */
-  DRG_RX3,    /* intel EDX */
+  DRG_RX0,
+  DRG_RX1,
+  DRG_RX2,
+  DRG_RX3,
   DRG_RX4,
   DRG_RX5,
   DRG_RX6,
@@ -18,7 +18,14 @@ typedef enum dlcode_register {
 
 typedef enum dlcode_op {
   DOP_ADD,    /* add [r1] [r2] */
+  DOP_SUB,    /* sub [r1] [r2] */
+  DOP_MUL,    /* mul [r1] [r2] */
+  DOP_DIV,    /* div [r1] [r2] */
+
   DOP_MOV,    /* mov [r1] [r2] */
+  DOP_PUSH,
+  DOP_POP,
+
   DOP_CALL,   /* call label */
   DOP_MRK_ID, /* [label]: || db [label] '...' */
   DOP_LABEL,  /* [label]: */

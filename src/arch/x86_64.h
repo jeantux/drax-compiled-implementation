@@ -6,6 +6,8 @@
 #include "../dlowcode.h"
 
 #define FL            "\n"
+#define SPACE         " "
+
 #define SD_GNU_STR    " \"%s\\n\""
 #define SD_GNU_ENT    "_start"
 
@@ -19,6 +21,8 @@
 #define GAS_DATA      ".data"
 #define GAS_TEXT      ".text"
 #define GAS_GLOBAL    ".global"
+
+#define DMC(v)        v SPACE
 
 int dx_x86_64_data_section();
 
