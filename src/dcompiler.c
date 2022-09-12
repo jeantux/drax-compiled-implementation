@@ -29,6 +29,8 @@ d_ast* gcA;
 dregx_stack* garith_stack;
 d_fn_state* fn_state;
 
+dlines_cmd* curr_global_state;
+
 /* Stack Helpers */
 
 #define AST_SIZE 1024
@@ -72,7 +74,7 @@ static int dc_puts_instruction(dlines_cmd* v, char* var) {
 
 static int dc_puts_str(const char* var, char* content) {
   dc_puts_data(glcs->data_section, (char*) var, content);
-  dc_puts_instruction(glcs->start_global, (char*) var);
+  dc_puts_instruction(curr_global_state, (char*) var);
   return 0;
 }
 
@@ -111,14 +113,14 @@ static void dc_arith_op(dlcode_op t_op) {
   dlcode_register rgx = reg_stack_pop();
 
   if (DRG_NONE == rgx) {
-    DPUSH_VALUE(glcs->start_global, DOP_POP, DRG_RX0, NULL);
-    DPUSH_VALUE(glcs->start_global, DOP_POP, DRG_RX1, NULL);
+    DPUSH_VALUE(curr_global_state, DOP_POP, DRG_RX0, NULL);
+    DPUSH_VALUE(curr_global_state, DOP_POP, DRG_RX1, NULL);
     reg_stack_push(DRG_RX0);
   } else {
-    DPUSH_VALUE(glcs->start_global, DOP_POP, DRG_RX0, NULL);
+    DPUSH_VALUE(curr_global_state, DOP_POP, DRG_RX0, NULL);
   }
 
-  DPUSH_RGX(glcs->start_global, t_op, DRG_RX0, DRG_RX1);
+  DPUSH_RGX(curr_global_state, t_op, DRG_RX0, DRG_RX1);
 }
 
 static void dc_function() {
@@ -133,6 +135,8 @@ static void dc_function() {
     return;
   }
 
+  curr_global_state = glcs->funcs_defs;
+  DPUSH_VALUE(curr_global_state, DOP_LABEL, DRG_NONE, fname);
   fn_state->curr_is_main = false;
 }
 
@@ -224,16 +228,16 @@ static int compiler_process() {
         dc_puts();
         break;
       }
-      DCCase(DAT_RETURN) {
-        fn_state->curr_is_main = fn_state->main_defined;
-        
+      DCCase(DAT_RETURN) {        
         if (fn_state->curr_is_main) {
           dlcode_register rgx = reg_stack_last();
-          DPUSH_VALUE(glcs->start_global, DOP_EXIT, rgx, NULL);
+          DPUSH_VALUE(curr_global_state, DOP_EXIT, rgx, NULL);
         } else {
-          DPUSH_VALUE(glcs->start_global, DOP_RETURN, DRG_NONE, NULL);
+          DPUSH_VALUE(curr_global_state, DOP_RETURN, DRG_NONE, NULL);
         }
 
+        fn_state->curr_is_main = fn_state->main_defined;
+        curr_global_state = glcs->start_global;
         break;
       }
       DCCase(DAT_FUN) {
@@ -244,8 +248,8 @@ static int compiler_process() {
         break;
       }
       DCCase(DAT_NUMBER) {
-        DPUSH_VALUE(glcs->start_global, DOP_MOV,  DRG_RX0, GET_PREV_VAL(0));
-        DPUSH_VALUE(glcs->start_global, DOP_PUSH, DRG_RX0, NULL);
+        DPUSH_VALUE(curr_global_state, DOP_MOV,  DRG_RX0, GET_PREV_VAL(0));
+        DPUSH_VALUE(curr_global_state, DOP_PUSH, DRG_RX0, NULL);
         break;
       }
       
@@ -269,6 +273,8 @@ int __compile__(d_ast* sda, dlcode_state* lcs, const char* outn) {
   fn_state = (d_fn_state*) malloc(sizeof(fn_state));
   fn_state->main_defined = false;
   fn_state->curr_is_main = false;
+
+  curr_global_state = glcs->start_global;
 
   #ifdef __DRAX_INSPECT
     debugger_ast();

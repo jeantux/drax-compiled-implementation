@@ -56,6 +56,7 @@ static int write_lines_to_buffer(dlines_cmd* v) {
 int dx_code_generation(dlcode_state* lcs, const char* outn) {
   system("rm "ASMFN1); // debug
   if (lcs) {
+    const char* exit_lbl = "exit";
     dx_init_data_section();
     write_lines_to_buffer(lcs->data_section);
 
@@ -63,11 +64,14 @@ int dx_code_generation(dlcode_state* lcs, const char* outn) {
     write_lines_to_buffer(lcs->text_section);
 
     write_lines_to_buffer(lcs->start_global);
-    
     /* Must be implemented by arch implementation */
     df_asm_gen(SDCODE_RETURN FL);
 
-    const char* exit_lbl = "exit";
+    /* Jump to exit to avoid exec other functions */
+    get_asm_code(new_line_cmd(DOP_JUMP, DRG_NONE, DRG_NONE, CAST_DRAX_BYTE(exit_lbl)));
+
+    write_lines_to_buffer(lcs->funcs_defs);
+
     get_asm_code(new_line_cmd(DOP_LABEL, DRG_NONE, DRG_NONE, CAST_DRAX_BYTE(exit_lbl)));
     dx_init_exit();
 

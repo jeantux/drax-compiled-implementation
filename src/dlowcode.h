@@ -27,6 +27,7 @@ typedef enum dlcode_op {
   DOP_POP,
 
   DOP_CALL,   /* call label */
+  DOP_JUMP,
   DOP_MRK_ID, /* [label]: || db [label] '...' */
   DOP_LABEL,  /* [label]: */
   DOP_GLOBAL, /* globl __main */
@@ -61,6 +62,7 @@ typedef struct dlcode_state {
   dlines_cmd* text_section;
   dlines_cmd* data_section;
   dlines_cmd* start_global;
+  dlines_cmd* funcs_defs;
 } dlcode_state;
 
 dlcode_state* __lowcode_init__();

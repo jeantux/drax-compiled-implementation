@@ -58,6 +58,7 @@ dlcode_state* __lowcode_init__() {
   lcs->text_section = new_lines_cmd();
   lcs->data_section = new_lines_cmd();
   lcs->start_global = new_lines_cmd();
+  lcs->funcs_defs = new_lines_cmd();
   
   return lcs;
 }
