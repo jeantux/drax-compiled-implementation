@@ -48,15 +48,12 @@ typedef struct {
 } operation_line;
 
 typedef enum scope_type {
-  SCP_BLOCK,
   SCP_FUN,
   SCP_ROOT
 } scope_type;
 
 typedef struct parser_builder {
-  struct parser_builder* owner;
   scope_type type;
-  int curr_level;
 } parser_builder;
 
 int __parser__(d_ast* sda, const char* source);

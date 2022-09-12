@@ -64,6 +64,9 @@ all: corelibs
 debug:
 	$(DEFAULT_BUILD) $(DEBUGF)
 
+inspect:
+	$(DEFAULT_BUILD) $(DEBUGF) -D__DRAX_INSPECT
+
 run:
 	./bin/$(APP)
 

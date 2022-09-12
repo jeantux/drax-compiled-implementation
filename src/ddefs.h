@@ -15,6 +15,8 @@ typedef unsigned long d_byte_def;
 
 #define UNUSED3(a, b, c) UNUSED2(a, b); UNUSED(c)
 
+#define CAST_DRAX_BYTE(v) (d_byte_def) v
+
 #define CAST_STRING(v)  (char*) v
 
 #define CAST_INT(v)  (int) v

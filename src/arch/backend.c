@@ -25,12 +25,8 @@
     return dx_x86_64_text_section();
   }
 
-  static int dx_init_start() {
-    return dx_x86_64_start();
-  }
-
   static int dx_init_exit() {
-    return dx_x86_64_exit();
+    return dx_x86_64_exit(NULL);
   }
 
 #endif
@@ -66,9 +62,13 @@ int dx_code_generation(dlcode_state* lcs, const char* outn) {
     dx_init_text_section();
     write_lines_to_buffer(lcs->text_section);
 
-    dx_init_start();
     write_lines_to_buffer(lcs->start_global);
     
+    /* Must be implemented by arch implementation */
+    df_asm_gen(SDCODE_RETURN FL);
+
+    const char* exit_lbl = "exit";
+    get_asm_code(new_line_cmd(DOP_LABEL, DRG_NONE, DRG_NONE, CAST_DRAX_BYTE(exit_lbl)));
     dx_init_exit();
 
     system(ASMCOMPILER ASMFN1 ASM_AS_ARGS " -o "ASMFO0);

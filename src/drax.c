@@ -21,7 +21,7 @@ static int process_file(char** argv, const char* outn) {
   d_ast* sda = new_d_ast(); /* Shared Drax AST */
 
 
-  __parser__(sda, content);
+  if(__parser__(sda, content)) { exit(1); };
   __compile__(sda, lcs, outn);
   return 0;
 }

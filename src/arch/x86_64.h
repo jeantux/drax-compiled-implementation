@@ -12,11 +12,11 @@
 #define DNUM_ASM_REPR "$%lu"
 #define SD_GNU_ENT    "_start"
 
-#define SDCALL_WRITE  "mov $1,    %%eax"
-#define SDCALL_STDOUT "mov $1,    %%edi"
-#define SDCALL_EXIT   "mov $60,   %%eax"
+#define SDCALL_WRITE  "mov $1, %%eax"
+#define SDCALL_STDOUT "mov $1, %%edi"
+#define SDCALL_EXIT   "mov $1, %%eax"
 #define SDCODE_RETURN "xor %%edi, %%edi"
-#define SDSYSCALL     "syscall"FL
+#define SDSYSCALL     "int  $0x80"FL
 
 #define GAS_ASCII     ".asciz"
 #define GAS_DATA      ".data"
@@ -28,8 +28,6 @@
 int dx_x86_64_data_section();
 
 int dx_x86_64_text_section();
-
-int dx_x86_64_start();
 
 int dx_x86_64_exit();
 

@@ -3,6 +3,8 @@
 #ifndef __DCOMPILER
 #define __DCOMPILER
 
+#include <stdbool.h>
+
 #include "dlowcode.h"
 #include "ddefs.h"
 
@@ -25,6 +27,8 @@ typedef enum d_ast_op {
   DAT_CONST,
   DAT_PUTS,
   DAT_VAR,
+  DAT_RETURN,
+  DAT_FUN,
 } d_ast_op;
 
 typedef struct d_ast {
@@ -35,10 +39,16 @@ typedef struct d_ast {
   int cap;
 } d_ast;
 
-typedef struct darith_stack {
+typedef struct d_fn_state {
+  bool main_defined;
+  bool curr_is_main;
+} d_fn_state;
+
+typedef struct dregx_stack {
+  dlcode_register last;
   dlcode_register* rgx;
   int count;
-} darith_stack;
+} dregx_stack;
 
 d_ast* new_d_ast();
 

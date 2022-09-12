@@ -29,10 +29,12 @@ typedef enum dlcode_op {
   DOP_CALL,   /* call label */
   DOP_MRK_ID, /* [label]: || db [label] '...' */
   DOP_LABEL,  /* [label]: */
+  DOP_GLOBAL, /* globl __main */
 
   DOP_CONST,  /* reg. 'value' */
   DOP_PUTS,
   DOP_VAR,
+  DOP_RETURN,   /* ret */
 
   DOP_SYSCALL,
   DOP_EXIT,

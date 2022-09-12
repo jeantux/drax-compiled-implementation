@@ -13,7 +13,8 @@ parser_builder* current = NULL;
 d_ast* gsda;
 
 static void init_parser() {
-// init parser
+  current = (parser_builder*) malloc(sizeof(parser_builder));
+  current->type = SCP_ROOT;
 }
 
 static operation_line op_lines[] = {
@@ -69,7 +70,7 @@ static char* get_lex_str(const char* chars, int length) {
 
 #define FATAL_CURR(v) dfatal(&parser.current, v)
 
-#define GET_CURRENT_TOKEN() parser.current.type
+#define GET_CURRENT_TOKEN_TYPE() parser.current.type
 
 #define DPUSH_AST(t, v) push_d_ast(gsda, t, (d_byte_def) v)
 
@@ -202,8 +203,26 @@ static void block() {
   UNUSED(NULL);
 }
 
+static void process_scope_function() {
+    while ((GET_CURRENT_TOKEN_TYPE() != DTK_END) && (GET_CURRENT_TOKEN_TYPE() != DTK_EOF)) {
+    process();
+  }
+
+  process_token(DTK_END, "Expect 'end' after block.");
+}
+
 static void fun_declaration() {
-  UNUSED(NULL);
+  process_token(DTK_ID, "Expect function name.");
+
+  DPUSH_AST(DAT_FUN, get_lex_str(parser.prev.first, parser.prev.length));
+
+  process_token(DTK_PAR_OPEN, "Expect '(' after fun.");
+  process_token(DTK_PAR_CLOSE, "Expect ')' after fun.");
+  process_token(DTK_DO, "Expect 'do' before function.");
+  current->type = SCP_FUN;
+  process_scope_function();
+  
+  current->type = SCP_ROOT;
 }
 
 static void if_definition() {
@@ -215,7 +234,7 @@ static void puts_definition() {
 }
 
 static void process() {
-  switch (GET_CURRENT_TOKEN()) {
+  switch (GET_CURRENT_TOKEN_TYPE()) {
     case DTK_FUN: {
       get_next_token();
       fun_declaration();
@@ -235,6 +254,7 @@ static void process() {
       }
 
       expression();
+      DPUSH_AST(DAT_RETURN, NULL);
       break;
     }
       
@@ -267,7 +287,7 @@ int __parser__(d_ast* sda, const char* source) {
 
   get_next_token();
 
-  while (GET_CURRENT_TOKEN() != DTK_EOF) {
+  while (GET_CURRENT_TOKEN_TYPE() != DTK_EOF) {
     process();
   }
 
