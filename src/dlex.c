@@ -24,6 +24,11 @@ static const drax_tokens drax_t[] = {
   {"puts",   DTK_PUTS},
   {"return", DTK_RETURN},
   {"true",   DTK_TRUE},
+  {"any",    DTK_KEY_ANY},
+  {"bool",   DTK_KEY_BOOL},
+  {"int",    DTK_KEY_INT},
+  {"float",  DTK_KEY_FLOAT},
+  {"string", DTK_KEY_STRING},
  };
 
 /* Helpers */
@@ -151,6 +156,13 @@ d_token next_token() {
       case ')': return dmake_symbol(DTK_PAR_CLOSE);
       case '[': return dmake_symbol(DTK_BKT_OPEN);
       case ']': return dmake_symbol(DTK_BKT_CLOSE);
+      case ':': {
+        if(next_char() == ':') {
+          next_char();
+          return dmake_symbol(DTK_DBCOLON);
+        }
+        return dmake_symbol(DTK_COLON);
+      };
       case ',': return dmake_symbol(DTK_COMMA);
       case '.': {
         return dmake_symbol(DTK_DOT);

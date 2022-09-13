@@ -211,6 +211,29 @@ static void process_scope_function() {
   process_token(DTK_END, "Expect 'end' after block.");
 }
 
+static void process_type() {
+  get_next_token();
+  switch (GET_CURRENT_TOKEN_TYPE()) {
+  case DTK_KEY_ANY: break;
+  case DTK_KEY_BOOL: break;
+  case DTK_KEY_INT: break;
+  case DTK_KEY_FLOAT: break;
+  case DTK_KEY_STRING: break;
+  
+  default:
+  // PUT ANY TYPE or DINAMIC TYPE
+    break;
+  }
+}
+
+static void process_type_definition() {
+  if (DTK_DBCOLON == GET_CURRENT_TOKEN_TYPE()) {
+    get_next_token();
+    process_type();
+    return;
+  }
+}
+
 static void fun_declaration() {
   process_token(DTK_ID, "Expect function name.");
 
@@ -218,7 +241,9 @@ static void fun_declaration() {
 
   process_token(DTK_PAR_OPEN, "Expect '(' after fun.");
   process_token(DTK_PAR_CLOSE, "Expect ')' after fun.");
-  process_token(DTK_DO, "Expect 'do' before function.");
+
+  process_type_definition();
+
   current->type = SCP_FUN;
   process_scope_function();
   
