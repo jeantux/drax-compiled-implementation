@@ -240,6 +240,7 @@ static void fun_declaration() {
   DPUSH_AST(DAT_FUN, get_lex_str(parser.prev.first, parser.prev.length));
 
   process_token(DTK_PAR_OPEN, "Expect '(' after fun.");
+  // process args
   process_token(DTK_PAR_CLOSE, "Expect ')' after fun.");
 
   process_type_definition();

@@ -35,7 +35,7 @@ typedef enum dlcode_op {
   DOP_CONST,  /* reg. 'value' */
   DOP_PUTS,
   DOP_VAR,
-  DOP_RETURN,   /* ret */
+  DOP_RETURN, /* ret */
 
   DOP_SYSCALL,
   DOP_EXIT,

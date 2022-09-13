@@ -110,17 +110,18 @@ static dlcode_register reg_stack_last() {
 
 /* Main Atith. process */
 static void dc_arith_op(dlcode_op t_op) {
+
+  DPUSH_VALUE(curr_global_state, DOP_POP, DRG_RX0, NULL);
+  DPUSH_VALUE(curr_global_state, DOP_POP, DRG_RX1, NULL);
+
+  DPUSH_RGX(curr_global_state, t_op,     DRG_RX0, DRG_RX1);
+  DPUSH_RGX(curr_global_state, DOP_PUSH, DRG_RX1, DRG_NONE);
+  /* register with result */
   dlcode_register rgx = reg_stack_pop();
 
   if (DRG_NONE == rgx) {
-    DPUSH_VALUE(curr_global_state, DOP_POP, DRG_RX0, NULL);
-    DPUSH_VALUE(curr_global_state, DOP_POP, DRG_RX1, NULL);
-    reg_stack_push(DRG_RX0);
-  } else {
-    DPUSH_VALUE(curr_global_state, DOP_POP, DRG_RX0, NULL);
+    reg_stack_push(DRG_RX1);
   }
-
-  DPUSH_RGX(curr_global_state, t_op, DRG_RX0, DRG_RX1);
 }
 
 static void dc_function() {
