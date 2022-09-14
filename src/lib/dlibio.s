@@ -2,15 +2,16 @@
 
 .global dsys_out
 
+/* i386 syscalls */
 dsys_out:
   call   str_size
-  mov    $1, %eax
-  mov    $1, %edi
-  syscall
+  mov    $4, %eax
+  mov    $1, %ebx
+  int    $0x80
   ret
 
 str_size:
-  mov    %esi, %edx
+  mov    %ecx, %edx
 
 next_char:
   cmpb   $0x0,(%edx)
@@ -19,5 +20,5 @@ next_char:
   jmp    next_char
 
 finish:
-  sub    %esi, %edx
+  sub    %ecx, %edx
   ret

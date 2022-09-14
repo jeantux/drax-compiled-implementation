@@ -70,7 +70,7 @@ static int call_exit(dline_cmd* e) {
 }
 
 static int dx_x86_32_puts(dline_cmd* e) {
-  df_asm_gen("mov $%s, %%esi" FL, CAST_STRING(e->value));
+  df_asm_gen("mov $%s, %%ecx" FL, CAST_STRING(e->value));
   df_asm_gen("call dsys_out\n");
 
   return 0;

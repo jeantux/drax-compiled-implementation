@@ -15,7 +15,7 @@
 /* Syscalls */
 #define SDSYSCALL     "int  $0x80"FL
 #define SDCALL_EXIT   "mov $1, %%eax"
-#define SDCALL_STDOUT "mov $1, %%edi"
+#define SDCALL_STDOUT "mov $1, %%ecx"
 #define SDCODE_RETURN "xor %%ebx, %%ebx"
 #define SDCALL_WRITE  "mov $4, %%eax"
 
