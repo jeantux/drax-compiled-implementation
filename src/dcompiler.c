@@ -103,8 +103,6 @@ static dlcode_register reg_stack_pop() {
 
 static dlcode_register reg_stack_last() {
   dlcode_register rgx = garith_stack->count <= 0 ? DRG_NONE : garith_stack->rgx[garith_stack->count -1];
-
-  if (DRG_NONE == rgx) { return garith_stack->last; }
   return rgx;
 }
 
@@ -232,7 +230,7 @@ static int compiler_process() {
       DCCase(DAT_RETURN) {        
         if (fn_state->curr_is_main) {
           dlcode_register rgx = reg_stack_last();
-          DPUSH_VALUE(curr_global_state, DOP_EXIT, rgx, NULL);
+          DPUSH_VALUE(curr_global_state, DOP_EXIT, rgx == DRG_NONE ? DRG_RX0 : rgx, NULL);
         } else {
           DPUSH_VALUE(curr_global_state, DOP_RETURN, DRG_NONE, NULL);
         }

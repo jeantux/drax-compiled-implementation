@@ -13,7 +13,7 @@ FILES= ./src/dflags.c \
        ./src/dcpu.c \
        ./src/dcompiler.c \
        ./src/dgen.c \
-       ./src/arch/x86_64.c \
+       ./src/arch/x86_32.c \
        ./src/arch/backend.c \
        ./src/drax.c
 

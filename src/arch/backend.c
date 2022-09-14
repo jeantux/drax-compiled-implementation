@@ -10,7 +10,7 @@
 #include "../ddefs.h"
   
 #ifdef __x86_64__
-  #include "x86_64.h"
+  #include "x86_32.h"
   
   #define ASMLD       "ld"
   #define ASMCOMPILER "as "
@@ -18,15 +18,15 @@
   #define ASM_LD_ARGS " -m elf_i386 "
 
   static int dx_init_data_section() {
-    return dx_x86_64_data_section();
+    return dx_x86_32_data_section();
   }
 
   static int dx_init_text_section() {
-    return dx_x86_64_text_section();
+    return dx_x86_32_text_section();
   }
 
   static int dx_init_exit() {
-    return dx_x86_64_exit(NULL);
+    return dx_x86_32_exit(NULL);
   }
 
 #endif
@@ -54,7 +54,9 @@ static int write_lines_to_buffer(dlines_cmd* v) {
 }
 
 int dx_code_generation(dlcode_state* lcs, const char* outn) {
-  system("rm "ASMFN1); // debug
+  #ifdef __DRAX_INSPECT
+    system("rm "ASMFN1);
+  #endif
   if (lcs) {
     const char* exit_lbl = "exit";
     dx_init_data_section();
@@ -79,7 +81,10 @@ int dx_code_generation(dlcode_state* lcs, const char* outn) {
     system(get_ln_cmd(outn));
   }
 
-  // system("rm "ASMFN1);
+  #ifndef __DRAX_INSPECT
+    system("rm "ASMFN1);
+  #endif
+
   system("rm "ASMFO0);
 
   return 0;

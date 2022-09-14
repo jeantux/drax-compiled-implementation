@@ -1,7 +1,7 @@
 /* Drax Lang - 2022 */
 
-#ifndef __DARCH_x86_64
-#define __DARCH_x86_64
+#ifndef __DARCH_x86_32
+#define __DARCH_x86_32
 
 #include "../dlowcode.h"
 
@@ -25,11 +25,11 @@
 
 #define DMC(v)        v SPACE
 
-int dx_x86_64_data_section();
+int dx_x86_32_data_section();
 
-int dx_x86_64_text_section();
+int dx_x86_32_text_section();
 
-int dx_x86_64_exit();
+int dx_x86_32_exit();
 
 int get_asm_code(dline_cmd* v) ;
 
