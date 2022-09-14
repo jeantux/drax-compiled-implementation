@@ -101,11 +101,6 @@ static dlcode_register reg_stack_pop() {
   return garith_stack->rgx[garith_stack->count];
 }
 
-static dlcode_register reg_stack_last() {
-  dlcode_register rgx = garith_stack->count <= 0 ? DRG_NONE : garith_stack->rgx[garith_stack->count -1];
-  return rgx;
-}
-
 /* Main Atith. process */
 static void dc_arith_op(dlcode_op t_op) {
 
@@ -229,8 +224,8 @@ static int compiler_process() {
       }
       DCCase(DAT_RETURN) {        
         if (fn_state->curr_is_main) {
-          dlcode_register rgx = reg_stack_last();
-          DPUSH_VALUE(curr_global_state, DOP_EXIT, rgx == DRG_NONE ? DRG_RX0 : rgx, NULL);
+          DPUSH_VALUE(curr_global_state, DOP_POP,  DRG_RX1, NULL);
+          DPUSH_VALUE(curr_global_state, DOP_EXIT, DRG_RX1, NULL);
         } else {
           DPUSH_VALUE(curr_global_state, DOP_RETURN, DRG_NONE, NULL);
         }

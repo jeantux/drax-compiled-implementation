@@ -62,7 +62,7 @@ static int call_exit(dline_cmd* e) {
   } else {
     df_asm_gen(dxasm_cmd_table(DOP_MOV));
     df_asm_gen(dxasm_reg_table(e->rg0));
-    df_asm_gen(",%%edi" FL);
+    df_asm_gen(",%%ebx" FL); // Int error code
   }
   df_asm_gen(dxasm_cmd_table(DOP_JUMP));
   df_asm_gen("exit");
