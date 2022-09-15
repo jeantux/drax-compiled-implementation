@@ -106,17 +106,18 @@ static int dx_x86_32_mov(dline_cmd* e) {
 static int dx_x86_32_arith(dline_cmd* e) {
   df_asm_gen(dxasm_cmd_table(e->op));
 
-  if (e->rg_qtt == 1) {
-    char* var;
-    asprintf(&var, DNUM_ASM_REPR, e->value);
-    df_asm_gen(var);
-  } else {
-    df_asm_gen(dxasm_reg_table(e->rg0));
+  if (e->op != DOP_DIV) {
+    if (e->rg_qtt == 1) {
+      char* var;
+      asprintf(&var, DNUM_ASM_REPR, e->value);
+      df_asm_gen(var);
+    } else {
+      df_asm_gen(dxasm_reg_table(e->rg0));
+    }
+    df_asm_gen(",");
   }
 
-  df_asm_gen(",");
   df_asm_gen(dxasm_reg_table(e->rg_qtt == 1 ? e->rg0 : e->rg1));
-
   df_asm_gen(FL);
 
   return 0;
