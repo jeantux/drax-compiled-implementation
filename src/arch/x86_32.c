@@ -35,9 +35,15 @@ static const char* dxasm_cmd_table(dlcode_op t) {
     case DOP_CALL:   return DMC("call");
     case DOP_JUMP:   return DMC("jmp");
     case DOP_RETURN: return DMC("ret");
+    case DOP_LCOMM:  return DMC(".lcomm");
+    case DOP_COMM:   return DMC(".comm");
 
     default: return "";
   }
+}
+
+int dx_x86_32_bss_section() {
+  return df_asm_gen(GAS_BSS FL);
 }
 
 int dx_x86_32_data_section() {
@@ -71,7 +77,7 @@ static int call_exit(dline_cmd* e) {
 
 static int dx_x86_32_puts(dline_cmd* e) {
   df_asm_gen("mov $%s, %%ecx" FL, CAST_STRING(e->value));
-  df_asm_gen("call dsys_out\n");
+  df_asm_gen("call dputs\n");
 
   return 0;
 }
@@ -162,6 +168,19 @@ static int dx_x86_32_jump(dline_cmd* e) {
   return 0;
 }
 
+static int dx_type_def(dline_cmd* e) {
+  df_asm_gen(dxasm_cmd_table(e->op));
+
+  d_byte_pair_def* dpair = CAST_DRAX_PAIR(e->value);
+
+  df_asm_gen(CAST_STRING(dpair->left));
+  df_asm_gen(",");
+  df_asm_gen(CAST_STRING(dpair->right)); /* size */
+  df_asm_gen(FL);
+
+  return 0;
+}
+
 int get_asm_code(dline_cmd* v) {
   switch (v->op) {
     case DOP_MRK_ID:
@@ -186,6 +205,10 @@ int get_asm_code(dline_cmd* v) {
     case DOP_CONST: return dx_x86_32_const(v);
     case DOP_PUTS: return dx_x86_32_puts(v);
     case DOP_RETURN: return dx_x86_32_return(v);
+    
+    /* types def. */
+    case DOP_LCOMM:
+    case DOP_COMM: return dx_type_def(v);
   
     default: return 0;
   }

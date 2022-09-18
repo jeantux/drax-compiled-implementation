@@ -260,6 +260,18 @@ static int compiler_process() {
   return 0;
 }
 
+static int init_bss() {
+  d_byte_pair_def* dpair = (d_byte_pair_def*) malloc(sizeof(d_byte_pair_def));
+  char* key = (char*) "buffer";
+  char* size = (char*) "1024";
+
+  dpair->left  = CAST_DRAX_BYTE(key);
+  dpair->right = CAST_DRAX_BYTE(size);
+
+  DPUSH_VALUE(glcs->bss_section, DOP_COMM, DRG_NONE, CAST_DRAX_BYTE(dpair));
+  return 0;
+}
+
 /* Compiler Call */
 int __compile__(d_ast* sda, dlcode_state* lcs, const char* outn) {
   glcs = lcs;
@@ -279,6 +291,7 @@ int __compile__(d_ast* sda, dlcode_state* lcs, const char* outn) {
     debugger_ast();
   #endif
 
+  init_bss();
   compiler_process();
 
   if (!fn_state->main_defined) {

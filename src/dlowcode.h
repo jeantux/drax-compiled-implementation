@@ -37,6 +37,10 @@ typedef enum dlcode_op {
   DOP_VAR,
   DOP_RETURN, /* ret */
 
+  /* bss */
+  DOP_COMM,  /* Common Memory Area */
+  DOP_LCOMM, /* Local Common Memory Area */
+
   DOP_SYSCALL,
   DOP_EXIT,
 } dlcode_op;
@@ -58,7 +62,7 @@ typedef struct dlines_cmd {
 
 
 typedef struct dlcode_state {
-  // dlines_cmd bss_section;
+  dlines_cmd* bss_section;
   dlines_cmd* text_section;
   dlines_cmd* data_section;
   dlines_cmd* start_global;

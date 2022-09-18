@@ -17,6 +17,10 @@
   #define ASM_AS_ARGS " --32 "
   #define ASM_LD_ARGS " -m elf_i386 "
 
+  static int dx_init_bss_section() {
+    return dx_x86_32_bss_section();
+  }
+
   static int dx_init_data_section() {
     return dx_x86_32_data_section();
   }
@@ -59,6 +63,9 @@ int dx_code_generation(dlcode_state* lcs, const char* outn) {
   #endif
   if (lcs) {
     const char* exit_lbl = "exit";
+    dx_init_bss_section();
+    write_lines_to_buffer(lcs->bss_section);
+
     dx_init_data_section();
     write_lines_to_buffer(lcs->data_section);
 

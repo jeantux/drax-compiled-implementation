@@ -55,6 +55,7 @@ dline_cmd* new_line_cmd(dlcode_op t, dlcode_register r0, dlcode_register r1, d_b
  */
 dlcode_state* __lowcode_init__() {
   dlcode_state* lcs = (dlcode_state*) malloc(sizeof(dlcode_state));
+  lcs->bss_section = new_lines_cmd();
   lcs->text_section = new_lines_cmd();
   lcs->data_section = new_lines_cmd();
   lcs->start_global = new_lines_cmd();

@@ -20,11 +20,14 @@
 #define SDCALL_WRITE  "mov $4, %%eax"
 
 #define GAS_ASCII     ".asciz"
+#define GAS_BSS       ".bss"
 #define GAS_DATA      ".data"
 #define GAS_TEXT      ".text"
 #define GAS_GLOBAL    ".global"
 
 #define DMC(v)        v SPACE
+
+int dx_x86_32_bss_section();
 
 int dx_x86_32_data_section();
 
