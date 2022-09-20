@@ -70,12 +70,12 @@ inspect:
 run:
 	./bin/$(APP)
 
-config:
-	mkdir bin
+config: corelibs
+	mkdir -p bin
 
 corelibs:
 	as --32 src/lib/dlibio.s -o bin/libdrax.so
 
 clean:
-	rm ./bin/$(APP)
-	rm ./bin/*.so
+	rm -f ./bin/$(APP)
+	rm -f ./bin/*.so
