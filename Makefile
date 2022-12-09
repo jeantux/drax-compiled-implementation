@@ -70,7 +70,7 @@ inspect:
 run:
 	./bin/$(APP)
 
-config: corelibs
+config:
 	mkdir -p bin
 
 corelibs:
