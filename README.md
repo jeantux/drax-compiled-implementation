@@ -8,18 +8,18 @@ Drax is a very simple compiler that generates native code written in c and thoug
 
 First you must generate the initial configuration
 
-`bash
+```bash
 make config
-`
+```
 
 To generate the binary executable run:
 
-`bash
+```bash
 make
-`
+```
 
 To compile a new program you can run:
 
-`bash
+```bash
 ./bin/drax tests/hello.dx
-`
+```
