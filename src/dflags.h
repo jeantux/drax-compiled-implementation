@@ -9,8 +9,6 @@
 
 #define DRAX_VM_VERSION  "v0.0.1-dev"
 
-void initial_info();
-
 void version_app();
 
 char* parse_flags(int* res, int argc, char** argv);
