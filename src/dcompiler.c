@@ -79,6 +79,7 @@ static int dc_puts_str(const char* var, char* content) {
 }
 
 static void dc_puts() {
+  gcA->pc++;
   dg_const_def++;
   char* var;
   asprintf(&var, "DS_%i", dg_const_def);

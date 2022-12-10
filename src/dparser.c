@@ -163,10 +163,16 @@ void process_or(bool v) {
 
 void process_string(bool v) {
   UNUSED(v);
+  DPUSH_AST(DAT_CONST, get_lex_str(parser.prev.first + 1, parser.prev.length - 2));
 }
 
 void process_variable(bool v) {
   UNUSED(v);
+  DPUSH_AST(DAT_VAR, get_lex_str(parser.prev.first + 1, parser.prev.length - 2));
+
+  get_next_token();
+  process_token(DTK_EQ, "Missing \"=\" operator.");
+  process();
 }
 
 void process_unary(bool v) {
@@ -255,10 +261,6 @@ static void if_definition() {
   UNUSED(NULL);
 }
 
-static void puts_definition() {
-  DPUSH_AST(DAT_PUTS, get_lex_str(parser.current.first + 1, parser.current.length - 2));
-}
-
 static void process() {
   switch (GET_CURRENT_TOKEN_TYPE()) {
     case DTK_FUN: {
@@ -285,8 +287,9 @@ static void process() {
     }
       
     case DTK_PUTS: {
+      DPUSH_AST(DAT_PUTS, NULL);
       get_next_token();
-      puts_definition();
+      expression();
       break;
     }
 
