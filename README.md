@@ -23,3 +23,8 @@ To compile a new program you can run:
 ```bash
 ./bin/drax tests/hello.dx
 ```
+
+After compiling a binary will be generated and just run:
+```bash
+./main
+```
