@@ -56,6 +56,12 @@ typedef struct parser_builder {
   scope_type type;
 } parser_builder;
 
+typedef struct parser_definition_table {
+  int count;
+  int cap;
+  char** names;
+} parser_definition_table;
+
 int __parser__(d_ast* sda, const char* source);
 
 void mark_compiler_roots();

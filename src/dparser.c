@@ -11,11 +11,7 @@
 parser_state parser;
 parser_builder* current = NULL;
 d_ast* gsda;
-
-static void init_parser() {
-  current = (parser_builder*) malloc(sizeof(parser_builder));
-  current->type = SCP_ROOT;
-}
+parser_definition_table* gp_def_tbl;
 
 static operation_line op_lines[] = {
   make_op_line(DTK_PAR_OPEN,  process_grouping,    process_call,   iCALL),
@@ -55,6 +51,39 @@ static operation_line op_lines[] = {
   make_op_line(DTK_LET,       process_variable,    NULL,           iNONE),
   make_op_line(DTK_ID,        process_id,          NULL,           iNONE),
 };
+
+/* Helpers */
+
+static void init_parser() {
+  current = (parser_builder*) malloc(sizeof(parser_builder));
+  current->type = SCP_ROOT;
+
+  gp_def_tbl = (parser_definition_table*) malloc(sizeof(parser_definition_table));
+  gp_def_tbl->names = (char**) malloc(sizeof(char*) * LOCAL_SIZE_FACTOR);
+  gp_def_tbl->count = 0;
+  gp_def_tbl->cap = LOCAL_SIZE_FACTOR;
+}
+
+static void push_def_on_table(char* name) {
+  gp_def_tbl->count++;
+
+  if (gp_def_tbl->count >= gp_def_tbl->cap) {
+    gp_def_tbl->cap = gp_def_tbl->cap + LOCAL_SIZE_FACTOR;
+    gp_def_tbl->names = realloc(gp_def_tbl->names, gp_def_tbl->cap * sizeof(char *));
+  }
+
+  gp_def_tbl->names[gp_def_tbl->count -1] = name;
+}
+
+static bool has_def_on_table(char* name) {
+  for (int i = 0; i < gp_def_tbl->count; i++) {
+    if (strcmp(gp_def_tbl->names[i], name) == 0) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 static char* get_lex_str(const char* chars, int length) {
   char* result = (char*) malloc(length + 1);
@@ -168,13 +197,25 @@ void process_string(bool v) {
 
 void process_id(bool v) {
   UNUSED(v);
-  DPUSH_AST(DAT_ID, get_lex_str(parser.prev.first, parser.prev.length));
+  char* name = get_lex_str(parser.prev.first, parser.prev.length);
+  DPUSH_AST(DAT_ID, name);
+
+  if (!has_def_on_table(name)) {
+    FATAL("is not defined.");
+  }
 }
 
 void process_variable(bool v) {
   UNUSED(v);
-  get_next_token();
-  DPUSH_AST(DAT_VAR, get_lex_str(parser.prev.first, parser.prev.length));
+  process_token(DTK_ID, "invalid expression, identifier is expected.");
+  char* name = get_lex_str(parser.prev.first, parser.prev.length);
+
+  if (has_def_on_table(name)) {
+    FATAL("already defined.");
+  }
+
+  DPUSH_AST(DAT_VAR, name);
+  push_def_on_table(name);
   process_token(DTK_EQ, "Missing \"=\" operator.");
   expression();
 }
