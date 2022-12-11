@@ -13,4 +13,6 @@ void version_app();
 
 char* parse_flags(int* res, int argc, char** argv);
 
+char* get_path(int argc, char** argv);
+
 #endif
