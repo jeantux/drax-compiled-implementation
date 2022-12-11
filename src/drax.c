@@ -9,9 +9,9 @@
 #include "dflags.h"
 #include "ddefs.h"
 
-static int process_file(char** argv, const char* outn) {
+
+static int process_file(char* path, const char* outn) {
   char* content = NULL;
-  char* path = argv[1];
   if(get_file_content(path, &content)) {
     // error
     return 1;
@@ -29,9 +29,9 @@ static int process_file(char** argv, const char* outn) {
 int main(int argc, char** argv) {
   int t;
   char* _outn = parse_flags(&t, argc, argv);
-  
-  if (t == 1) {
-    return process_file(argv, _outn);
+  char* path = get_path(argc, argv);
+  if (t == 1 && path) {
+    return process_file(path, _outn);
   }
 
   return 0;
