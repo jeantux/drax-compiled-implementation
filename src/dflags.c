@@ -18,16 +18,6 @@ static int non_flag(char * name) {
   return 0;
 }
 
-char* get_path(int argc, char** argv) {
-  for (int i = 1; i < argc; i++) {
-    if(non_flag(argv[i]) == 0) { i += 2; }
-
-    return argv[i];
-  }
-
-  return NULL;
-}
-
 static int argcmp(char sname, const char * name, char * arg) {
   if (arg[0] == '-') {
     if (arg[1] == '-' && name != NULL) {
