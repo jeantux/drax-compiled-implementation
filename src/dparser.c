@@ -48,12 +48,12 @@ static operation_line op_lines[] = {
   make_op_line(DTK_FUN,       NULL,                NULL,           iNONE),
   make_op_line(DTK_IF,        NULL,                NULL,           iNONE),
   make_op_line(DTK_OR,        NULL,                process_or,     iOR),
-  make_op_line(DTK_PUTS,      NULL,                NULL,           iNONE),
   make_op_line(DTK_RETURN,    NULL,                NULL,           iNONE),
   make_op_line(DTK_ERROR,     NULL,                NULL,           iNONE),
   make_op_line(DTK_EOF,       NULL,                NULL,           iNONE),
   make_op_line(DTK_CONCAT,    NULL,                process_binary, iTERM),
-  make_op_line(DTK_ID,        process_variable,    NULL,           iNONE),
+  make_op_line(DTK_LET,       process_variable,    NULL,           iNONE),
+  make_op_line(DTK_ID,        process_id,          NULL,           iNONE),
 };
 
 static char* get_lex_str(const char* chars, int length) {
@@ -166,13 +166,17 @@ void process_string(bool v) {
   DPUSH_AST(DAT_CONST, get_lex_str(parser.prev.first + 1, parser.prev.length - 2));
 }
 
+void process_id(bool v) {
+  UNUSED(v);
+  DPUSH_AST(DAT_ID, get_lex_str(parser.prev.first, parser.prev.length));
+}
+
 void process_variable(bool v) {
   UNUSED(v);
-  DPUSH_AST(DAT_VAR, get_lex_str(parser.prev.first + 1, parser.prev.length - 2));
-
   get_next_token();
+  DPUSH_AST(DAT_VAR, get_lex_str(parser.prev.first, parser.prev.length));
   process_token(DTK_EQ, "Missing \"=\" operator.");
-  process();
+  expression();
 }
 
 void process_unary(bool v) {
@@ -333,7 +337,7 @@ void dfatal(d_token* token, const char* message) {
   fprintf(stderr, "Error, line %d:\n", token->line);
 
   if (token->type == DTK_EOF) {
-    fprintf(stderr, "  end of file");
+    fprintf(stderr, "  end of file.");
   }  else {
     fprintf(stderr, " '%.*s'", token->length, token->first);
   }

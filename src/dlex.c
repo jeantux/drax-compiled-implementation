@@ -19,6 +19,7 @@ static const drax_tokens drax_t[] = {
   {"false",  DTK_FALSE},
   {"fun",    DTK_FUN},
   {"if",     DTK_IF},
+  {"let",    DTK_LET},
   {"nil",    DTK_NIL},
   {"or",     DTK_OR},
   {"puts",   DTK_PUTS},

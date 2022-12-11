@@ -19,21 +19,29 @@
 
 #define DPUSH_RGX(l, t, r0, r1)   push_line_op(l, new_line_cmd(t, r0, r1, 0));
 
+#define NEXT_CMD gcA->pc++;
+
 #define GET_PREV_VAL(_idx)  gcA->val[gcA->pc - (1 + _idx)]
 
 #define GET_STRING_VAL()    (CAST_STRING(GET_PREV_VAL(0)))
 
-int dg_const_def = 0;
+#define INC_CONST_COUNT dg_const_def++;
+
+int dg_const_def = 0; /* Last const defintions */
 dlcode_state* glcs;
 d_ast* gcA;
 dregx_stack* garith_stack;
 d_fn_state* fn_state;
 
 dlines_cmd* curr_global_state;
+d_const_table* gconst_table;
+
 
 /* Stack Helpers */
 
 #define AST_SIZE 1024
+
+/* AST Helpers */
 
 d_ast* new_d_ast() {
   d_ast* v = (d_ast*) malloc(sizeof(d_ast));
@@ -52,7 +60,55 @@ int push_d_ast(d_ast* v, d_ast_op op, d_byte_def val) {
   return 0;
 }
 
+/* Const table helper */
+
+#define CONST_TABLE_FACTOR 50
+
+static void new_const_table() {
+  gconst_table = (d_const_table*) malloc(sizeof(d_const_table));
+  gconst_table->count = 0;
+  gconst_table->cap = CONST_TABLE_FACTOR;
+  gconst_table->idxs = malloc(gconst_table->cap * sizeof(int));
+  gconst_table->names = malloc(gconst_table->cap * sizeof(char*));
+}
+
+static void push_const_table(char* name, int idx) {
+  gconst_table->count++;
+
+  if (gconst_table->count >= gconst_table->cap) {
+    gconst_table->cap = gconst_table->cap + CONST_TABLE_FACTOR;
+    gconst_table->idxs = realloc(gconst_table->idxs, gconst_table->cap * sizeof(int));
+    gconst_table->names = realloc(gconst_table->names, gconst_table->cap * sizeof(char*));
+  }
+  
+  gconst_table->idxs[gconst_table->count -1] = idx;
+  gconst_table->names[gconst_table->count -1] = name;
+}
+
+static int find_const_table(char* name) {
+  for (int i = 0; i < gconst_table->count; i++) {
+    if (strcmp(gconst_table->names[i], name) == 0) {
+      return gconst_table->idxs[i];
+    }
+  }
+
+  return -1;
+}
+
+/* General Helpers */
+static char* get_var_name(int idx) {
+  char* var;
+  asprintf(&var, "DS_%i", idx);
+  return var;
+}
+
 /* Compiler Functions */
+
+static void fatal_compiler(const char* error) {
+  // monut stack trace
+  printf("Compilation error: %s\n", error);
+  exit(0);
+}
 
 /**
  * Define const on section data
@@ -78,12 +134,52 @@ static int dc_puts_str(const char* var, char* content) {
   return 0;
 }
 
+static int dc_puts_idx(int idx) {
+  char* var = get_var_name(idx);
+  dc_puts_instruction(curr_global_state, (char*) var);
+  return 0;
+}
+
+static int dc_const() {
+  INC_CONST_COUNT;
+  char* var = get_var_name(dg_const_def);
+  dc_puts_data(glcs->data_section, var, GET_STRING_VAL());
+  return dg_const_def;
+}
+
+static void dc_var() {
+  char* name = GET_STRING_VAL();
+  NEXT_CMD;
+  int idx = dc_const();
+  push_const_table(name, idx);
+}
+
 static void dc_puts() {
-  gcA->pc++;
-  dg_const_def++;
-  char* var;
-  asprintf(&var, "DS_%i", dg_const_def);
-  dc_puts_str(var, GET_STRING_VAL());
+  DCSwitch() {
+      DCCase(DAT_CONST) {
+        INC_CONST_COUNT;
+        char* var = get_var_name(dg_const_def);
+        dc_puts_str(var, GET_STRING_VAL());
+        break;
+      }
+      DCCase(DAT_ID) {
+        int idx = find_const_table(GET_STRING_VAL());
+
+        if (idx == -1) {
+          char* var;
+          asprintf(&var, "identifier '%s' not found.", GET_STRING_VAL());
+          fatal_compiler(var);
+        }
+
+        dc_puts_idx(idx);
+        break;
+      }
+      default: {
+        // throuw compilation error
+        break;
+      }
+  }
+
 }
 
 /* Arith Stack Helpers */
@@ -187,6 +283,11 @@ static void dc_function() {
         }
         DCCase(DAT_NUMBER) {
           printf("NUM => [%lu]\n", GET_PREV_VAL(0));
+          break;
+        }
+        DCCase(DAT_ID) {
+          printf("[ID]\n");
+          break;
         }
         default:
           break;
@@ -222,6 +323,7 @@ static int compiler_process() {
         break;
       }
       DCCase(DAT_CONST) {
+        // dc_const();
         break;
       }
       DCCase(DAT_PUTS) {
@@ -245,6 +347,7 @@ static int compiler_process() {
         break;
       }
       DCCase(DAT_VAR) {
+        dc_var();
         break;
       }
       DCCase(DAT_NUMBER) {
@@ -277,6 +380,8 @@ static int init_bss() {
 int __compile__(d_ast* sda, dlcode_state* lcs, const char* outn) {
   glcs = lcs;
   gcA = sda;
+
+  new_const_table();
 
   garith_stack = (dregx_stack*) malloc(sizeof(dregx_stack));
   garith_stack->count = 0;

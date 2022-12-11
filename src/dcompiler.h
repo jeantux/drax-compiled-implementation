@@ -29,6 +29,7 @@ typedef enum d_ast_op {
   DAT_VAR,
   DAT_RETURN,
   DAT_FUN,
+  DAT_ID,
 } d_ast_op;
 
 typedef struct d_ast {
@@ -49,6 +50,18 @@ typedef struct dregx_stack {
   dlcode_register* rgx;
   int count;
 } dregx_stack;
+
+typedef struct d_const_data {
+  char* name;
+  int idx;
+} d_const_data;
+
+typedef struct d_const_table {
+  char** names;
+  int* idxs;
+  int count;
+  int cap;
+} d_const_table;
 
 d_ast* new_d_ast();
 

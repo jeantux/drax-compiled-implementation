@@ -71,6 +71,7 @@ callback_table(process_number);
 callback_table(process_and);
 callback_table(process_or);
 callback_table(process_native_type);
+callback_table(process_id);
 
 void dfatal(d_token* token, const char* message);
 
