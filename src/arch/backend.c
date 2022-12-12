@@ -9,6 +9,7 @@
 #include "../dgen.h"
 #include "../ddefs.h"
   
+#ifdef __DRAX_BACKEND_ASM
 #ifdef __x86_64__
   #include "i386.h"
   
@@ -33,8 +34,6 @@
     return dx_i386_exit(NULL);
   }
 
-#endif
-
 static char* get_ln_cmd(const char* name) {
   const char* fcmd = ASMLD ASM_LD_ARGS " -s "ASMFO0 " "ASMLIBS " -o ";
   int sz = strlen(fcmd) + strlen(name) + 1;
@@ -45,6 +44,9 @@ static char* get_ln_cmd(const char* name) {
   cmd[sz] = '\0';
   return cmd;
 }
+
+#endif
+#endif
 
 /**
  * Convert lines_op to asm format

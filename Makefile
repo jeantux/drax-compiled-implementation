@@ -45,10 +45,9 @@ FLAGS= \
 		$(LIBS) \
 		$(OUTBIN)
 
-# The directive -D_D_NOTINIT_WORKERS do not start the 
-# workers together with VM.
-
-# DRAX_BUILD_FULL= 
+# DRAX_BACKEND will define which backend will be used
+# __DRAX_BACKEND_ASM = ASM, native code
+DRAX_BACKEND=-D__DRAX_BACKEND_ASM
 
 DEFAULT_BUILD = \
 		$(CC) \
@@ -56,7 +55,7 @@ DEFAULT_BUILD = \
 		$(FILES) \
 		$(ASM_LINKS) \
 		-D_GNU_SOURCE \
-		$(DRAX_BUILD_FULL)
+		$(DRAX_BACKEND) \
 
 all: corelibs
 	$(DEFAULT_BUILD)

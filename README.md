@@ -2,7 +2,7 @@
 
 Drax is a very simple compiler that generates native code written in c and thought to support different backends.
 
-*Support for architecture x86_32 linux only*
+*Support for architecture i386 linux only*
 
 ## Compiling
 
