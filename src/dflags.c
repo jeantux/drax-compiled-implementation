@@ -35,7 +35,7 @@ char* get_path(int argc, char** argv) {
   for (int i = 1; i < argc; i++) {
     if(non_flag(argv[i]) == 0) {
       if(strcmp("-o", argv[i]) == 0) {
-        i += 1; 
+        i++;
       }
     } else {
       return argv[i];
