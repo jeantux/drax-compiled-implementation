@@ -24,6 +24,7 @@
 #define GET_PREV_VAL(_idx)  gcA->val[gcA->pc - (1 + _idx)]
 
 #define GET_STRING_VAL()    (CAST_STRING(GET_PREV_VAL(0)))
+#define GET_INT_VAL()       (CAST_INT(GET_PREV_VAL(0)))
 
 #define INC_CONST_COUNT dg_const_def++;
 
@@ -113,9 +114,17 @@ static void fatal_compiler(const char* error) {
 /**
  * Define const on section data
  */
-static int dc_puts_data(dlines_cmd* v, char* name, char* value) {
+static int dc_const_string_data(dlines_cmd* v, char* name, char* value) {
   DPUSH_VALUE(v, DOP_MRK_ID, DRG_NONE, name);
-  DPUSH_VALUE(v, DOP_CONST,  DRG_NONE, value);
+  DPUSH_VALUE(v, DOP_STRING,  DRG_NONE, value);
+  return 0;
+}
+/**
+ * Define number on section data
+ */
+static int dc_const_int_data(dlines_cmd* v, char* name, int value) {
+  DPUSH_VALUE(v, DOP_MRK_ID, DRG_NONE, name);
+  DPUSH_VALUE(v, DOP_INT,    DRG_NONE, value);
   return 0;
 }
 /**
@@ -129,7 +138,7 @@ static int dc_puts_instruction(dlines_cmd* v, char* var) {
 }
 
 static int dc_puts_str(const char* var, char* content) {
-  dc_puts_data(glcs->data_section, (char*) var, content);
+  dc_const_string_data(glcs->data_section, (char*) var, content);
   dc_puts_instruction(curr_global_state, (char*) var);
   return 0;
 }
@@ -140,17 +149,41 @@ static int dc_puts_idx(int idx) {
   return 0;
 }
 
-static int dc_const() {
+static int dc_const_string() {
   INC_CONST_COUNT;
   char* var = get_var_name(dg_const_def);
-  dc_puts_data(glcs->data_section, var, GET_STRING_VAL());
+  dc_const_string_data(glcs->data_section, var, GET_STRING_VAL());
+  return dg_const_def;
+}
+
+static int dc_const_number() {
+  INC_CONST_COUNT;
+  char* var = get_var_name(dg_const_def);
+  dc_const_int_data(glcs->data_section, var, GET_INT_VAL());
   return dg_const_def;
 }
 
 static void dc_var() {
   char* name = GET_STRING_VAL();
-  NEXT_CMD;
-  int idx = dc_const();
+  
+  int idx = 0;
+  DCSwitch() {
+      DCCase(DAT_CONST) {
+        idx = dc_const_string();
+        break;
+      }
+      DCCase(DAT_NUMBER) {
+        idx = dc_const_number();
+        break;
+      }
+      DCCase(DAT_ID) {
+        break;
+      }
+      default: {
+        // throuw compilation error
+        break;
+      }
+  }
   push_const_table(name, idx);
 }
 
@@ -323,7 +356,7 @@ static int compiler_process() {
         break;
       }
       DCCase(DAT_CONST) {
-        // dc_const();
+        // dc_const_string();
         break;
       }
       DCCase(DAT_PUTS) {

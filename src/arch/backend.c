@@ -10,7 +10,7 @@
 #include "../ddefs.h"
   
 #ifdef __x86_64__
-  #include "x86_32.h"
+  #include "i386.h"
   
   #define ASMLD       "ld"
   #define ASMCOMPILER "as "
@@ -18,19 +18,19 @@
   #define ASM_LD_ARGS " -m elf_i386 "
 
   static int dx_init_bss_section() {
-    return dx_x86_32_bss_section();
+    return dx_i386_bss_section();
   }
 
   static int dx_init_data_section() {
-    return dx_x86_32_data_section();
+    return dx_i386_data_section();
   }
 
   static int dx_init_text_section() {
-    return dx_x86_32_text_section();
+    return dx_i386_text_section();
   }
 
   static int dx_init_exit() {
-    return dx_x86_32_exit(NULL);
+    return dx_i386_exit(NULL);
   }
 
 #endif

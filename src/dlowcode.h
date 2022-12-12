@@ -32,7 +32,9 @@ typedef enum dlcode_op {
   DOP_LABEL,  /* [label]: */
   DOP_GLOBAL, /* globl __main */
 
-  DOP_CONST,  /* reg. 'value' */
+  DOP_STRING,  /* reg. 'string value' */
+  DOP_INT,     /* reg. 'int value' */
+
   DOP_PUTS,
   DOP_VAR,
   DOP_RETURN, /* ret */
