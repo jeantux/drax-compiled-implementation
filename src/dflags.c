@@ -18,6 +18,7 @@ static int non_flag(char * name) {
   return 0;
 }
 
+
 static int argcmp(char sname, const char * name, char * arg) {
   if (arg[0] == '-') {
     if (arg[1] == '-' && name != NULL) {
@@ -28,6 +29,21 @@ static int argcmp(char sname, const char * name, char * arg) {
   }
 
   return 1;
+}
+
+char* get_path(int argc, char** argv) {
+  for (int i = 1; i < argc; i++) {
+    if(non_flag(argv[i]) == 0) {
+      if(strcmp("-o", argv[i]) == 0) {
+        i += 1; 
+      }
+    } else {
+      return argv[i];
+    }
+
+  }
+
+  return NULL;
 }
 
 static char* set_output_name(char** argv, int idx) {
@@ -44,31 +60,31 @@ static char* set_output_name(char** argv, int idx) {
 
 #define DEFAULT_NAME "main"
 
-char* parse_flags(int* res, int argc, char** argv) {
+char* parse_flags(int argc, char** argv) {
   if (argc <= 1) {
-    *res = 0;
-    return (char*) DEFAULT_NAME;
+    return NULL;
   }
 
-  for (int i = 1; i < argc; i++) {
-    if (non_flag(argv[i])) {
-      *res = 1;
-      return (char*) DEFAULT_NAME;
-    }
-
+  for (int i = 1; i < argc; i++) {   
     if (argcmp('v', "--version", argv[i]) == 0) {
       version_app();
-      *res = 0;
       return (char*) DEFAULT_NAME;
     }
 
     if (argcmp('o', NULL, argv[i]) == 0) {
-      *res = 1;
-      /* intead of return add in global var */
-      return set_output_name(argv, i);
+      switch (argc) {
+        case 2:
+          printf("Error: The -o flag expects 1 argument.\n");
+          return NULL; 
+      case 3:
+        printf("Error: Expected file.\n");
+        return NULL; 
+      default:   
+        /* intead of return add in global var */
+        return set_output_name(argv, i);
+      }
     }
   }
 
-  *res = 0;
   return (char*) DEFAULT_NAME;
 }
