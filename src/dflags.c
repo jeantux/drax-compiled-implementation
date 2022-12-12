@@ -65,26 +65,22 @@ char* parse_flags(int argc, char** argv) {
     return NULL;
   }
 
+  char* out = (char*) DEFAULT_NAME;
+
   for (int i = 1; i < argc; i++) {   
     if (argcmp('v', "--version", argv[i]) == 0) {
       version_app();
-      return (char*) DEFAULT_NAME;
     }
 
     if (argcmp('o', NULL, argv[i]) == 0) {
-      switch (argc) {
-        case 2:
+      if (argc - i == 1) {
           printf("Error: The -o flag expects 1 argument.\n");
-          return NULL; 
-      case 3:
-        printf("Error: Expected file.\n");
-        return NULL; 
-      default:   
-        /* intead of return add in global var */
-        return set_output_name(argv, i);
+          return NULL;
       }
+      /* intead of return add in global var */
+      out = set_output_name(argv, i);
     }
   }
 
-  return (char*) DEFAULT_NAME;
+  return out;
 }
