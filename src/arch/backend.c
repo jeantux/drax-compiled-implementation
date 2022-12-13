@@ -9,44 +9,11 @@
 #include "../dgen.h"
 #include "../ddefs.h"
   
-#ifdef __DRAX_BACKEND_ASM
 #ifdef __x86_64__
   #include "i386.h"
-  
-  #define ASMLD       "ld"
-  #define ASMCOMPILER "as "
-  #define ASM_AS_ARGS " --32 "
-  #define ASM_LD_ARGS " -m elf_i386 "
-
-  static int dx_init_bss_section() {
-    return dx_i386_bss_section();
-  }
-
-  static int dx_init_data_section() {
-    return dx_i386_data_section();
-  }
-
-  static int dx_init_text_section() {
-    return dx_i386_text_section();
-  }
-
-  static int dx_init_exit() {
-    return dx_i386_exit(NULL);
-  }
-
-static char* get_ln_cmd(const char* name) {
-  const char* fcmd = ASMLD ASM_LD_ARGS " -s "ASMFO0 " "ASMLIBS " -o ";
-  int sz = strlen(fcmd) + strlen(name) + 1;
-  char* cmd = (char*) calloc(sizeof(char), sz);
-
-  strcat(cmd, fcmd);
-  strcat(cmd, name);
-  cmd[sz] = '\0';
-  return cmd;
-}
-
 #endif
-#endif
+
+#include "gcc.h"
 
 /**
  * Convert lines_op to asm format
@@ -63,8 +30,8 @@ int dx_code_generation(dlcode_state* lcs, const char* outn) {
   #ifdef __DRAX_INSPECT
     system("rm "ASMFN1);
   #endif
+
   if (lcs) {
-    const char* exit_lbl = "exit";
     dx_init_bss_section();
     write_lines_to_buffer(lcs->bss_section);
 
@@ -75,18 +42,32 @@ int dx_code_generation(dlcode_state* lcs, const char* outn) {
     write_lines_to_buffer(lcs->text_section);
 
     write_lines_to_buffer(lcs->start_global);
-    /* Must be implemented by arch implementation */
-    df_asm_gen(SDCODE_RETURN FL);
+    
+    #ifdef __DRAX_BACKEND_ASM
+      /**
+       * GNU Assembly.
+       * 
+       * Ensures that the program exits correctly 
+       * at the end of execution.
+      */
 
-    /* Jump to exit to avoid exec other functions */
-    get_asm_code(new_line_cmd(DOP_JUMP, DRG_NONE, DRG_NONE, CAST_DRAX_BYTE(exit_lbl)));
+      const char* exit_lbl = "exit";
+      
+      /* Must be implemented by arch implementation */
+      df_asm_gen(SDCODE_RETURN FL);
 
-    write_lines_to_buffer(lcs->funcs_defs);
+      /* Jump to exit to avoid exec other functions */
+      get_asm_code(new_line_cmd(DOP_JUMP, DRG_NONE, DRG_NONE, CAST_DRAX_BYTE(exit_lbl)));
 
-    get_asm_code(new_line_cmd(DOP_LABEL, DRG_NONE, DRG_NONE, CAST_DRAX_BYTE(exit_lbl)));
-    dx_init_exit();
+      write_lines_to_buffer(lcs->funcs_defs);
 
-    system(ASMCOMPILER ASMFN1 ASM_AS_ARGS " -o "ASMFO0);
+      get_asm_code(new_line_cmd(DOP_LABEL, DRG_NONE, DRG_NONE, CAST_DRAX_BYTE(exit_lbl)));
+      dx_init_exit();
+    #endif
+
+    #ifdef __DRAX_BACKEND_ASM
+      system(ASMCOMPILER ASMFN1 ASM_AS_ARGS " -o "ASMFO0);
+    #endif
     system(get_ln_cmd(outn));
   }
 
@@ -94,7 +75,9 @@ int dx_code_generation(dlcode_state* lcs, const char* outn) {
     system("rm "ASMFN1);
   #endif
 
-  system("rm "ASMFO0);
+  #ifdef __DRAX_BACKEND_ASM
+    system("rm "ASMFO0);
+  #endif
 
   return 0;
 }

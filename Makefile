@@ -13,6 +13,7 @@ FILES= ./src/dflags.c \
        ./src/dcpu.c \
        ./src/dcompiler.c \
        ./src/dgen.c \
+       ./src/arch/gcc.c \
        ./src/arch/i386.c \
        ./src/arch/backend.c \
        ./src/drax.c
@@ -47,7 +48,13 @@ FLAGS= \
 
 # DRAX_BACKEND will define which backend will be used
 # __DRAX_BACKEND_ASM = ASM, native code
-DRAX_BACKEND=-D__DRAX_BACKEND_ASM
+# __DRAX_BACKEND_GCC = GCC (Unix)
+
+ifdef BACKEND
+	DRAX_BACKEND=-D__DRAX_BACKEND_$(BACKEND)
+else
+	DRAX_BACKEND=-D__DRAX_BACKEND_ASM
+endif
 
 DEFAULT_BUILD = \
 		$(CC) \

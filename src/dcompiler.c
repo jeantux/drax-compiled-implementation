@@ -258,7 +258,11 @@ static void dc_function() {
   if (strcmp(fname, "main") == 0) {
     fn_state->main_defined = true;
     fn_state->curr_is_main = true;
-    fname = (char*) "_start";
+
+    #ifdef __DRAX_BACKEND_ASM
+      fname = (char*) "_start";
+    #endif
+
     DPUSH_VALUE(glcs->start_global, DOP_GLOBAL, DRG_NONE, fname);
     DPUSH_VALUE(glcs->start_global, DOP_LABEL,  DRG_NONE, fname);
     return;
@@ -398,6 +402,7 @@ static int compiler_process() {
 }
 
 static int init_bss() {
+  #ifdef __DRAX_BACKEND_ASM
   d_byte_pair_def* dpair = (d_byte_pair_def*) malloc(sizeof(d_byte_pair_def));
   char* key = (char*) "buffer";
   char* size = (char*) "1024";
@@ -406,6 +411,7 @@ static int init_bss() {
   dpair->right = CAST_DRAX_BYTE(size);
 
   DPUSH_VALUE(glcs->bss_section, DOP_COMM, DRG_NONE, CAST_DRAX_BYTE(dpair));
+  #endif
   return 0;
 }
 
