@@ -16,10 +16,10 @@
 
 /* Syscalls */
 #define SDSYSCALL     "int  $0x80"FL
-#define SDCALL_EXIT   "mov $1, %%eax"
-#define SDCALL_STDOUT "mov $1, %%ecx"
-#define SDCODE_RETURN "xor %%ebx, %%ebx"
-#define SDCALL_WRITE  "mov $4, %%eax"
+#define SDCALL_EXIT   "mov $1, %%rax"
+#define SDCALL_STDOUT "mov $1, %%rcx"
+#define SDCODE_RETURN "xor %%rbx, %%rbx"
+#define SDCALL_WRITE  "mov $4, %%rax"
 
 #define GAS_ASCII     ".asciz"
 #define GAS_LONG      ".long"

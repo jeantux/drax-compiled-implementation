@@ -11,14 +11,14 @@
 
 static const char* dxasm_reg_table(dlcode_register t) {
   switch (t) {
-    case DRG_RX0: return DMC("%%eax");
-    case DRG_RX1: return DMC("%%ebx");
-    case DRG_RX2: return DMC("%%ecx");
-    case DRG_RX3: return DMC("%%edx");
-    case DRG_RX4: return DMC("%%esi");
-    case DRG_RX5: return DMC("%%edi");
-    case DRG_RX6: return DMC("%%esp");
-    case DRG_RX7: return DMC("%%ebp");
+    case DRG_RX0: return DMC("%%rax");
+    case DRG_RX1: return DMC("%%rbx");
+    case DRG_RX2: return DMC("%%rcx");
+    case DRG_RX3: return DMC("%%rdx");
+    case DRG_RX4: return DMC("%%rsi");
+    case DRG_RX5: return DMC("%%rdi");
+    case DRG_RX6: return DMC("%%rsp");
+    case DRG_RX7: return DMC("%%rbp");
 
     default: return "";
   }
@@ -75,9 +75,17 @@ char* get_ln_cmd(const char* name) {
 /* end of signatures */
 
 static int call_exit(dline_cmd* e) {
-  UNUSED(e);
-  return 0;
+  if (DRG_NONE == e->rg0) {
+    df_asm_gen(SDCODE_RETURN FL);
+  } else {
+    df_asm_gen(dxasm_cmd_table(DOP_MOV));
+    df_asm_gen(dxasm_reg_table(e->rg0));
+    df_asm_gen(",%%rax" FL); // Int error code
+  }
+  df_asm_gen("ret");
+  return df_asm_gen(FL);
 }
+
 
 static int dx_gcc_puts(dline_cmd* e) {
   df_asm_gen("mov $%s, %%rdi" FL, CAST_STRING(e->value));
