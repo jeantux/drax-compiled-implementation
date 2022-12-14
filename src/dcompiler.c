@@ -142,17 +142,20 @@ static int dc_puts_str(const char* var, char* content) {
   return 0;
 }
 
-static int dc_puts_int() {
+static int dc_puts_int(long int ival) {
   INC_CONST_COUNT;
   char* var = get_var_name(dg_const_def);
-  // integer
+
   dc_const_string_data(glcs->data_section, (char*) var, "%li\\n");
   DPUSH_VALUE(curr_global_state, DOP_MOV,  DRG_RX5, var, TLC_STRING);
-  DPUSH_VALUE(curr_global_state, DOP_MOV,  DRG_RX4, GET_INT_VAL(), TLC_INT);
+  DPUSH_VALUE(curr_global_state, DOP_MOV,  DRG_RX4, ival, TLC_INT);
+  
+  /* GCC 
+   * xor is required, because printf is varargs.
+   */
   DPUSH_RGX(curr_global_state, DOP_XOR,  DRG_RX0, DRG_RX0, TLC_NONE);
-
   const char* puts_fn = "printf";
-  DPUSH_VALUE(curr_global_state, DOP_CALL, DRG_NONE, puts_fn, TLC_STRING); //gcc
+  DPUSH_VALUE(curr_global_state, DOP_CALL, DRG_NONE, puts_fn, TLC_STRING);
   return 0;
 }
 
@@ -209,7 +212,7 @@ static void dc_puts() {
         break;
       }
       DCCase(DAT_INT) {
-        dc_puts_int();
+        dc_puts_int(GET_INT_VAL());
         break;
       }
       DCCase(DAT_ID) {

@@ -4,6 +4,9 @@ Drax is a very simple compiler that generates native code and is designed to sup
 
 *Support for architecture i386 linux only*
 
+## Requirements
+* gcc (to use default backend)
+
 ## Compiling
 
 First you must generate the initial configuration
