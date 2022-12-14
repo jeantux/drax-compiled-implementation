@@ -39,13 +39,17 @@ static dlines_cmd* new_lines_cmd() {
   return v;
 }
 
-dline_cmd* new_line_cmd(dlcode_op t, dlcode_register r0, dlcode_register r1, d_byte_def v) {
+dline_cmd* new_line_cmd(
+  dlcode_op t, dlcode_register r0, dlcode_register r1,
+  d_byte_def v, dline_cmd_type tp
+) {
   dline_cmd* l = (dline_cmd*) malloc(sizeof(dline_cmd));
   l->rg_qtt = r1 == DRG_NONE ? 1 : 2;
   l->op = t;
   l->rg0 = r0;
   l->rg1 = r1;
   l->value = v;
+  l->type = tp;
   return l;
 }
 

@@ -16,7 +16,6 @@
 #define DCCase(t) case t:
 
 typedef enum d_ast_op {
-  DAT_NUMBER, /* Generic number */
   DAT_INT,
   DAT_FLOAT,
   DAT_ADD,

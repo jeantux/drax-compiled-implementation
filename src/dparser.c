@@ -35,7 +35,8 @@ static operation_line op_lines[] = {
   make_op_line(DTK_LS,        NULL,                process_binary, iDIFF),
   make_op_line(DTK_LE,        NULL,                process_binary, iDIFF),
   make_op_line(DTK_STRING,    process_string,      NULL,           iNONE),
-  make_op_line(DTK_NUMBER,    process_number,      NULL,           iNONE),
+  make_op_line(DTK_INT,       process_integer,     NULL,           iNONE),
+  make_op_line(DTK_FLOAT,     process_float,       NULL,           iNONE),
   make_op_line(DTK_AND,       NULL,                process_and,    iAND),
   make_op_line(DTK_ELSE,      NULL,                NULL,           iNONE),
   make_op_line(DTK_FALSE,     process_native_type, NULL,           iNONE),
@@ -180,10 +181,16 @@ void process_list(bool v) {
   UNUSED(v);
 }
 
-void process_number(bool v) {
+void process_integer(bool v) {
   UNUSED(v);
   double value = strtod(parser.prev.first, NULL);
-  DPUSH_AST(DAT_NUMBER, value);
+  DPUSH_AST(DAT_INT, value);
+}
+
+void process_float(bool v) {
+  UNUSED(v);
+  double value = strtod(parser.prev.first, NULL);
+  DPUSH_AST(DAT_FLOAT, value);
 }
 
 void process_or(bool v) {

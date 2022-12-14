@@ -138,9 +138,11 @@ d_token next_token() {
           while (is_number(CURR_TOKEN())) {
             next_char();
           }
+
+          return dmake_symbol(DTK_FLOAT);
         }
 
-        return dmake_symbol(DTK_NUMBER);
+        return dmake_symbol(DTK_INT);
       }
 
       case '+': {

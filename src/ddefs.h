@@ -27,7 +27,7 @@ typedef struct d_byte_pair_def {
 
 #define CAST_STRING(v)  (char*) v
 
-#define CAST_INT(v)  (int) v
+#define CAST_INT(v)  (long int) v
 
 #define CAST_FLOAT(v)  (double) v
 

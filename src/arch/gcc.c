@@ -31,6 +31,7 @@ static const char* dxasm_cmd_table(dlcode_op t) {
     case DOP_MUL:    return DMC("imul");
     case DOP_DIV:    return DMC("idiv"); /* Invalid */
     case DOP_MOV:    return DMC("mov");
+    case DOP_XOR:    return DMC("xor");
     case DOP_PUSH:   return DMC("push");
     case DOP_POP:    return DMC("pop");
     case DOP_CALL:   return DMC("call");
@@ -58,7 +59,7 @@ int dx_init_text_section() {
 }
 
 int dx_init_exit() {
-  return 0;
+  return df_asm_gen("ret" FL);
 }
 
 char* get_ln_cmd(const char* name) {
@@ -112,7 +113,15 @@ static int dx_gcc_mov(dline_cmd* e) {
   
   if (e->rg_qtt == 1) {
     char* var;
-    asprintf(&var, DNUM_ASM_REPR, e->value);
+
+    if (e->type == TLC_INT) {
+      asprintf(&var, DNUM_ASM_REPR, e->value);
+    }
+
+    if (e->type == TLC_STRING) {
+      asprintf(&var, DNUM_ASM_STR, CAST_STRING(e->value));
+    }
+
     df_asm_gen(var);
   } else {
     df_asm_gen(dxasm_reg_table(e->rg1));
@@ -157,6 +166,16 @@ static int dx_gcc_push(dline_cmd* e) {
 static int dx_gcc_pop(dline_cmd* e) {
   df_asm_gen(dxasm_cmd_table(e->op));
   df_asm_gen(dxasm_reg_table(e->rg0));
+  df_asm_gen(FL);
+
+  return 0;
+}
+
+static int dx_gcc_xor(dline_cmd* e) {
+  df_asm_gen(dxasm_cmd_table(e->op));
+  df_asm_gen(dxasm_reg_table(e->rg0));
+  df_asm_gen(",");
+  df_asm_gen(dxasm_reg_table(e->rg1));
   df_asm_gen(FL);
 
   return 0;
@@ -223,6 +242,8 @@ int get_asm_code(dline_cmd* v) {
     case DOP_INT: return dx_gcc_const_int(v);
     case DOP_PUTS: return dx_gcc_puts(v);
     case DOP_RETURN: return dx_gcc_return(v);
+    
+    case DOP_XOR: return dx_gcc_xor(v);
     
     /* types def. */
     case DOP_LCOMM:

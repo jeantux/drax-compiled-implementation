@@ -21,6 +21,7 @@ typedef enum dlcode_op {
   DOP_SUB,    /* sub [r1] [r2] */
   DOP_MUL,    /* mul [r1] [r2] */
   DOP_DIV,    /* div [r1] [r2] */
+  DOP_XOR,    /* xor [r1] [r2] */
 
   DOP_MOV,    /* mov [r1] [r2] */
   DOP_PUSH,
@@ -47,12 +48,19 @@ typedef enum dlcode_op {
   DOP_EXIT,
 } dlcode_op;
 
+typedef enum dline_cmd_type {
+  TLC_NONE,
+  TLC_INT,
+  TLC_STRING,
+} dline_cmd_type;
+
 typedef struct dline_cmd {
   dlcode_op op;
   int rg_qtt;
   dlcode_register rg0;
   dlcode_register rg1;
   d_byte_def value;
+  dline_cmd_type type;
 } dline_cmd;
 
 
@@ -75,6 +83,9 @@ dlcode_state* __lowcode_init__();
 
 int push_line_op(dlines_cmd* v, dline_cmd* line);
 
-dline_cmd* new_line_cmd(dlcode_op t, dlcode_register r0, dlcode_register r1, d_byte_def v);
+dline_cmd* new_line_cmd(
+  dlcode_op t, dlcode_register r0, dlcode_register r1, 
+  d_byte_def v, dline_cmd_type tp
+);
 
 #endif

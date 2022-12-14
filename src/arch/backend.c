@@ -57,13 +57,13 @@ int dx_code_generation(dlcode_state* lcs, const char* outn) {
       df_asm_gen(SDCODE_RETURN FL);
 
       /* Jump to exit to avoid exec other functions */
-      get_asm_code(new_line_cmd(DOP_JUMP, DRG_NONE, DRG_NONE, CAST_DRAX_BYTE(exit_lbl)));
+      get_asm_code(new_line_cmd(DOP_JUMP, DRG_NONE, DRG_NONE, CAST_DRAX_BYTE(exit_lbl), TLC_NONE));
 
       write_lines_to_buffer(lcs->funcs_defs);
 
-      get_asm_code(new_line_cmd(DOP_LABEL, DRG_NONE, DRG_NONE, CAST_DRAX_BYTE(exit_lbl)));
-      dx_init_exit();
+      get_asm_code(new_line_cmd(DOP_LABEL, DRG_NONE, DRG_NONE, CAST_DRAX_BYTE(exit_lbl), TLC_NONE));
     #endif
+    dx_init_exit();
 
     #ifdef __DRAX_BACKEND_ASM
       system(ASMCOMPILER ASMFN1 ASM_AS_ARGS " -o "ASMFO0);

@@ -15,9 +15,9 @@
 
 #define DCCase(t) case t:
 
-#define DPUSH_VALUE(l, t, r, v)   push_line_op(l, new_line_cmd(t, r, DRG_NONE, (d_byte_def) v));
+#define DPUSH_VALUE(l, t, r, v, tp)   push_line_op(l, new_line_cmd(t, r, DRG_NONE, (d_byte_def) v, tp));
 
-#define DPUSH_RGX(l, t, r0, r1)   push_line_op(l, new_line_cmd(t, r0, r1, 0));
+#define DPUSH_RGX(l, t, r0, r1, tp)   push_line_op(l, new_line_cmd(t, r0, r1, 0, tp));
 
 #define NEXT_CMD gcA->pc++;
 
@@ -36,7 +36,6 @@ d_fn_state* fn_state;
 
 dlines_cmd* curr_global_state;
 d_const_table* gconst_table;
-
 
 /* Stack Helpers */
 
@@ -114,17 +113,17 @@ static void fatal_compiler(const char* error) {
 /**
  * Define const on section data
  */
-static int dc_const_string_data(dlines_cmd* v, char* name, char* value) {
-  DPUSH_VALUE(v, DOP_MRK_ID, DRG_NONE, name);
-  DPUSH_VALUE(v, DOP_STRING,  DRG_NONE, value);
+static int dc_const_string_data(dlines_cmd* v, char* name, const char* value) {
+  DPUSH_VALUE(v, DOP_MRK_ID, DRG_NONE, name, TLC_STRING);
+  DPUSH_VALUE(v, DOP_STRING,  DRG_NONE, value, TLC_STRING);
   return 0;
 }
 /**
  * Define number on section data
  */
 static int dc_const_int_data(dlines_cmd* v, char* name, int value) {
-  DPUSH_VALUE(v, DOP_MRK_ID, DRG_NONE, name);
-  DPUSH_VALUE(v, DOP_INT,    DRG_NONE, value);
+  DPUSH_VALUE(v, DOP_MRK_ID, DRG_NONE, name,  TLC_STRING);
+  DPUSH_VALUE(v, DOP_INT,    DRG_NONE, value, TLC_INT);
   return 0;
 }
 /**
@@ -133,13 +132,27 @@ static int dc_const_int_data(dlines_cmd* v, char* name, int value) {
  * Using Data section
  */
 static int dc_puts_instruction(dlines_cmd* v, char* var) {
-  DPUSH_VALUE(v, DOP_PUTS, DRG_NONE, var);
+  DPUSH_VALUE(v, DOP_PUTS, DRG_NONE, var, TLC_STRING);
   return 0;
 }
 
 static int dc_puts_str(const char* var, char* content) {
   dc_const_string_data(glcs->data_section, (char*) var, content);
   dc_puts_instruction(curr_global_state, (char*) var);
+  return 0;
+}
+
+static int dc_puts_int() {
+  INC_CONST_COUNT;
+  char* var = get_var_name(dg_const_def);
+  // integer
+  dc_const_string_data(glcs->data_section, (char*) var, "%li\\n");
+  DPUSH_VALUE(curr_global_state, DOP_MOV,  DRG_RX5, var, TLC_STRING);
+  DPUSH_VALUE(curr_global_state, DOP_MOV,  DRG_RX4, GET_INT_VAL(), TLC_INT);
+  DPUSH_RGX(curr_global_state, DOP_XOR,  DRG_RX0, DRG_RX0, TLC_NONE);
+
+  const char* puts_fn = "printf";
+  DPUSH_VALUE(curr_global_state, DOP_CALL, DRG_NONE, puts_fn, TLC_STRING); //gcc
   return 0;
 }
 
@@ -156,7 +169,7 @@ static int dc_const_string() {
   return dg_const_def;
 }
 
-static int dc_const_number() {
+static int dc_const_int() {
   INC_CONST_COUNT;
   char* var = get_var_name(dg_const_def);
   dc_const_int_data(glcs->data_section, var, GET_INT_VAL());
@@ -172,8 +185,8 @@ static void dc_var() {
         idx = dc_const_string();
         break;
       }
-      DCCase(DAT_NUMBER) {
-        idx = dc_const_number();
+      DCCase(DAT_INT) {
+        idx = dc_const_int();
         break;
       }
       DCCase(DAT_ID) {
@@ -193,6 +206,10 @@ static void dc_puts() {
         INC_CONST_COUNT;
         char* var = get_var_name(dg_const_def);
         dc_puts_str(var, GET_STRING_VAL());
+        break;
+      }
+      DCCase(DAT_INT) {
+        dc_puts_int();
         break;
       }
       DCCase(DAT_ID) {
@@ -234,16 +251,16 @@ static dlcode_register reg_stack_pop() {
 /* Main Atith. process */
 static void dc_arith_op(dlcode_op t_op) {
 
-  DPUSH_VALUE(curr_global_state, DOP_POP, t_op == DOP_DIV ? DRG_RX1 : DRG_RX0, NULL);
-  DPUSH_VALUE(curr_global_state, DOP_POP, t_op == DOP_DIV ? DRG_RX0 : DRG_RX1, NULL);
+  DPUSH_VALUE(curr_global_state, DOP_POP, t_op == DOP_DIV ? DRG_RX1 : DRG_RX0, NULL, TLC_STRING);
+  DPUSH_VALUE(curr_global_state, DOP_POP, t_op == DOP_DIV ? DRG_RX0 : DRG_RX1, NULL, TLC_STRING);
 
   if (t_op == DOP_DIV) {
-    DPUSH_RGX(curr_global_state, t_op, DRG_RX1, DRG_NONE);
+    DPUSH_RGX(curr_global_state, t_op, DRG_RX1, DRG_NONE, TLC_INT);
   } else {
-    DPUSH_RGX(curr_global_state, t_op, DRG_RX0, DRG_RX1);
+    DPUSH_RGX(curr_global_state, t_op, DRG_RX0, DRG_RX1, TLC_INT);
   }
 
-  DPUSH_RGX(curr_global_state, DOP_PUSH, t_op == DOP_DIV ? DRG_RX0 : DRG_RX1, DRG_NONE);
+  DPUSH_RGX(curr_global_state, DOP_PUSH, t_op == DOP_DIV ? DRG_RX0 : DRG_RX1, DRG_NONE, TLC_INT);
   /* register with result */
   dlcode_register rgx = reg_stack_pop();
 
@@ -263,13 +280,13 @@ static void dc_function() {
       fname = (char*) "_start";
     #endif
 
-    DPUSH_VALUE(glcs->start_global, DOP_GLOBAL, DRG_NONE, fname);
-    DPUSH_VALUE(glcs->start_global, DOP_LABEL,  DRG_NONE, fname);
+    DPUSH_VALUE(glcs->start_global, DOP_GLOBAL, DRG_NONE, fname, TLC_STRING);
+    DPUSH_VALUE(glcs->start_global, DOP_LABEL,  DRG_NONE, fname, TLC_STRING);
     return;
   }
 
   curr_global_state = glcs->funcs_defs;
-  DPUSH_VALUE(curr_global_state, DOP_LABEL, DRG_NONE, fname);
+  DPUSH_VALUE(curr_global_state, DOP_LABEL, DRG_NONE, fname, TLC_STRING);
   fn_state->curr_is_main = false;
 }
 
@@ -318,8 +335,12 @@ static void dc_function() {
           printf("[var]\n");
           break;
         }
-        DCCase(DAT_NUMBER) {
-          printf("NUM => [%lu]\n", GET_PREV_VAL(0));
+        DCCase(DAT_INT) {
+          printf("INT => [%li]\n", GET_PREV_VAL(0));
+          break;
+        }
+        DCCase(DAT_FLOAT) {
+          printf("FLOAT => [%ld]\n", GET_PREV_VAL(0));
           break;
         }
         DCCase(DAT_ID) {
@@ -369,10 +390,10 @@ static int compiler_process() {
       }
       DCCase(DAT_RETURN) {        
         if (fn_state->curr_is_main) {
-          DPUSH_VALUE(curr_global_state, DOP_POP,  DRG_RX1, NULL);
-          DPUSH_VALUE(curr_global_state, DOP_EXIT, DRG_RX1, NULL);
+          DPUSH_VALUE(curr_global_state, DOP_POP,  DRG_RX1, NULL, TLC_NONE);
+          DPUSH_VALUE(curr_global_state, DOP_EXIT, DRG_RX1, NULL, TLC_NONE);
         } else {
-          DPUSH_VALUE(curr_global_state, DOP_RETURN, DRG_NONE, NULL);
+          DPUSH_VALUE(curr_global_state, DOP_RETURN, DRG_NONE, NULL, TLC_NONE);
         }
 
         fn_state->curr_is_main = fn_state->main_defined;
@@ -387,9 +408,9 @@ static int compiler_process() {
         dc_var();
         break;
       }
-      DCCase(DAT_NUMBER) {
-        DPUSH_VALUE(curr_global_state, DOP_MOV,  DRG_RX0, GET_PREV_VAL(0));
-        DPUSH_VALUE(curr_global_state, DOP_PUSH, DRG_RX0, NULL);
+      DCCase(DAT_INT) {
+        DPUSH_VALUE(curr_global_state, DOP_MOV,  DRG_RX0, GET_PREV_VAL(0), TLC_INT);
+        DPUSH_VALUE(curr_global_state, DOP_PUSH, DRG_RX0, NULL, TLC_NONE);
         break;
       }
       
@@ -410,7 +431,7 @@ static int init_bss() {
   dpair->left  = CAST_DRAX_BYTE(key);
   dpair->right = CAST_DRAX_BYTE(size);
 
-  DPUSH_VALUE(glcs->bss_section, DOP_COMM, DRG_NONE, CAST_DRAX_BYTE(dpair));
+  DPUSH_VALUE(glcs->bss_section, DOP_COMM, DRG_NONE, CAST_DRAX_BYTE(dpair), TLC_NONE);
   #endif
   return 0;
 }

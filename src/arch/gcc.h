@@ -9,9 +9,10 @@
 #define FL            "\n"
 #define SPACE         " "
 
-#define SD_GNU_STR       " \"%s\\n\""
+#define SD_GNU_STR       " \"%s\""
 #define DNUM_SIMPLE_REPR " %lu"
 #define DNUM_ASM_REPR    " $%lu"
+#define DNUM_ASM_STR    " $%s"
 #define SD_GNU_ENT       "main"
 
 /* Syscalls */
