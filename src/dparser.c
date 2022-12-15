@@ -199,7 +199,7 @@ void process_or(bool v) {
 
 void process_string(bool v) {
   UNUSED(v);
-  DPUSH_AST(DAT_CONST, get_lex_str(parser.prev.first + 1, parser.prev.length - 2));
+  DPUSH_AST(DAT_STRING, get_lex_str(parser.prev.first + 1, parser.prev.length - 2));
 }
 
 void process_id(bool v) {

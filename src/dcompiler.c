@@ -23,6 +23,7 @@
 
 #define GET_PREV_VAL(_idx)  gcA->val[gcA->pc - (1 + _idx)]
 
+#define GET_GENERIC_VAL()   (GET_PREV_VAL(0))
 #define GET_STRING_VAL()    (CAST_STRING(GET_PREV_VAL(0)))
 #define GET_INT_VAL()       (CAST_INT(GET_PREV_VAL(0)))
 
@@ -70,29 +71,40 @@ static void new_const_table() {
   gconst_table->cap = CONST_TABLE_FACTOR;
   gconst_table->idxs = malloc(gconst_table->cap * sizeof(int));
   gconst_table->names = malloc(gconst_table->cap * sizeof(char*));
+  gconst_table->types = malloc(gconst_table->cap * sizeof(d_native_type));
+  gconst_table->vals = malloc(gconst_table->cap * sizeof(d_byte_def));
 }
 
-static void push_const_table(char* name, int idx) {
+static void push_const_table(char* name, int idx, d_native_type type, d_byte_def val) {
   gconst_table->count++;
 
   if (gconst_table->count >= gconst_table->cap) {
     gconst_table->cap = gconst_table->cap + CONST_TABLE_FACTOR;
     gconst_table->idxs = realloc(gconst_table->idxs, gconst_table->cap * sizeof(int));
     gconst_table->names = realloc(gconst_table->names, gconst_table->cap * sizeof(char*));
+    gconst_table->types = realloc(gconst_table->types, gconst_table->cap * sizeof(d_native_type));
+    gconst_table->vals = realloc(gconst_table->vals, gconst_table->cap * sizeof(d_byte_def));
   }
   
   gconst_table->idxs[gconst_table->count -1] = idx;
   gconst_table->names[gconst_table->count -1] = name;
+  gconst_table->types[gconst_table->count -1] = type;
+  gconst_table->vals[gconst_table->count -1] = val;
 }
 
-static int find_const_table(char* name) {
+static int find_pos_on_table(char* name) {
   for (int i = 0; i < gconst_table->count; i++) {
     if (strcmp(gconst_table->names[i], name) == 0) {
-      return gconst_table->idxs[i];
+      return i;
     }
   }
 
   return -1;
+}
+
+static d_native_type get_type_on_table(char* name) {
+  int pos = find_pos_on_table(name);
+  return pos >= 0 ? gconst_table->types[pos] : DNT_NONE;
 }
 
 /* General Helpers */
@@ -182,14 +194,17 @@ static int dc_const_int() {
 static void dc_var() {
   char* name = GET_STRING_VAL();
   
-  int idx = 0;
+  int idx = 0; // tmp
+  d_native_type type;
   DCSwitch() {
-      DCCase(DAT_CONST) {
+      DCCase(DAT_STRING) {
         idx = dc_const_string();
+        type = DNT_STRING;
         break;
       }
       DCCase(DAT_INT) {
         idx = dc_const_int();
+        type = DNT_INT;
         break;
       }
       DCCase(DAT_ID) {
@@ -200,12 +215,16 @@ static void dc_var() {
         break;
       }
   }
-  push_const_table(name, idx);
+
+  /**
+   * Put vars on list to otimizations
+   */
+  push_const_table(name, idx, type, GET_GENERIC_VAL());
 }
 
 static void dc_puts() {
   DCSwitch() {
-      DCCase(DAT_CONST) {
+      DCCase(DAT_STRING) {
         INC_CONST_COUNT;
         char* var = get_var_name(dg_const_def);
         dc_puts_str(var, GET_STRING_VAL());
@@ -216,15 +235,29 @@ static void dc_puts() {
         break;
       }
       DCCase(DAT_ID) {
-        int idx = find_const_table(GET_STRING_VAL());
+        int pos = find_pos_on_table(GET_STRING_VAL());
 
-        if (idx == -1) {
+        if (pos == -1) {
           char* var;
           asprintf(&var, "identifier '%s' not found.", GET_STRING_VAL());
           fatal_compiler(var);
         }
+        switch (get_type_on_table(GET_STRING_VAL())) {
+          case DNT_STRING: {
+            dc_puts_idx(gconst_table->idxs[pos]);
+            break;
+          }
+          
+          case DNT_INT: {
+            long int ival = CAST_INT(gconst_table->vals[pos]);
+            dc_puts_int(ival);
+            break;
+          }
+          default: {
+            break;
+          }
+        }
 
-        dc_puts_idx(idx);
         break;
       }
       default: {
@@ -318,8 +351,8 @@ static void dc_function() {
           printf("[call]\n");
           break;
         }
-        DCCase(DAT_CONST) {
-          printf("[const]\n");
+        DCCase(DAT_STRING) {
+          printf("[string]\n");
           break;
         }
         DCCase(DAT_PUTS) {
@@ -383,7 +416,7 @@ static int compiler_process() {
       DCCase(DAT_CALL) {
         break;
       }
-      DCCase(DAT_CONST) {
+      DCCase(DAT_STRING) {
         // dc_const_string();
         break;
       }

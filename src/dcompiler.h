@@ -15,15 +15,22 @@
 
 #define DCCase(t) case t:
 
+typedef enum d_native_type{
+  DNT_NONE,
+  DNT_INT,
+  DNT_FLOAT,
+  DNT_STRING,  
+} d_native_type;
+
 typedef enum d_ast_op {
   DAT_INT,
   DAT_FLOAT,
+  DAT_STRING,
   DAT_ADD,
   DAT_SUB,
   DAT_MUL,
   DAT_DIV,
   DAT_CALL,
-  DAT_CONST,
   DAT_PUTS,
   DAT_VAR,
   DAT_RETURN,
@@ -58,6 +65,8 @@ typedef struct d_const_data {
 typedef struct d_const_table {
   char** names;
   int* idxs;
+  d_native_type* types;
+  d_byte_def* vals;
   int count;
   int cap;
 } d_const_table;
