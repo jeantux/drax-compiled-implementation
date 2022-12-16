@@ -18,7 +18,7 @@ make config
 To generate the binary executable run:
 
 ```bash
-make BACKEND="ASM" 
+make
 ```
 for building the drax binary, you can define which backend to use.
 in the example above we used "ASM" which has GNU Assembler as a backend.
