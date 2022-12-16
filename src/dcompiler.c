@@ -24,10 +24,10 @@
 #define GET_PREV_VAL(_idx)  gcA->val[gcA->pc - (1 + _idx)]
 
 #define GET_GENERIC_VAL()   (GET_PREV_VAL(0))
-#define GET_STRING_VAL()    (CAST_STRING(GET_PREV_VAL(0)))
-#define GET_INT_VAL()       (CAST_INT(GET_PREV_VAL(0)))
+#define GET_STRING_VAL()    (CAST_STRING(GET_GENERIC_VAL()))
+#define GET_INT_VAL()       (CAST_INT(GET_GENERIC_VAL()))
 
-#define INC_CONST_COUNT dg_const_def++;
+#define NEXT_CONST_COUNT    dg_const_def++
 
 int dg_const_def = 0; /* Last const defintions */
 dlcode_state* glcs;
@@ -155,8 +155,7 @@ static int dc_puts_str(const char* var, char* content) {
 }
 
 static int dc_puts_int(long int ival) {
-  INC_CONST_COUNT;
-  char* var = get_var_name(dg_const_def);
+  char* var = get_var_name(NEXT_CONST_COUNT + 1);
 
   dc_const_string_data(glcs->data_section, (char*) var, "%li\\n");
   DPUSH_VALUE(curr_global_state, DOP_MOV,  DRG_RX5, var, TLC_STRING);
@@ -177,41 +176,72 @@ static int dc_puts_idx(int idx) {
   return 0;
 }
 
-static int dc_const_string() {
-  INC_CONST_COUNT;
-  char* var = get_var_name(dg_const_def);
-  dc_const_string_data(glcs->data_section, var, GET_STRING_VAL());
+static int dc_const_string(int id, char* val) {
+  char* var = get_var_name(id);
+  dc_const_string_data(glcs->data_section, var, val);
   return dg_const_def;
 }
 
-static int dc_const_int() {
-  INC_CONST_COUNT;
-  char* var = get_var_name(dg_const_def);
-  dc_const_int_data(glcs->data_section, var, GET_INT_VAL());
+static int dc_const_int(int id, long int val) {
+  char* var = get_var_name(id);
+  dc_const_int_data(glcs->data_section, var, val);
   return dg_const_def;
 }
 
 static void dc_var() {
   char* name = GET_STRING_VAL();
   
-  int idx = 0; // tmp
+  int idx = 0;
   d_native_type type;
+  d_byte_def crr_val;
   DCSwitch() {
       DCCase(DAT_STRING) {
-        idx = dc_const_string();
+        idx = dc_const_string(NEXT_CONST_COUNT + 1, GET_STRING_VAL());
+        crr_val = GET_GENERIC_VAL();
         type = DNT_STRING;
         break;
       }
       DCCase(DAT_INT) {
-        idx = dc_const_int();
+        idx = dc_const_int(NEXT_CONST_COUNT + 1, GET_INT_VAL());
+        crr_val = GET_GENERIC_VAL();
         type = DNT_INT;
         break;
       }
       DCCase(DAT_ID) {
+        int pos = find_pos_on_table(GET_STRING_VAL());
+
+        if (pos == -1) {
+          char* var;
+          asprintf(&var, "identifier '%s' not found.", GET_STRING_VAL());
+          fatal_compiler(var);
+        }
+
+        switch (get_type_on_table(GET_STRING_VAL())) {
+          case DNT_STRING: {
+            crr_val = gconst_table->vals[pos];
+            idx = dc_const_string(NEXT_CONST_COUNT + 1, (char*) crr_val);
+            type = DNT_STRING;
+            break;
+          }
+          
+          case DNT_INT: {
+            crr_val = gconst_table->vals[pos];
+            idx = dc_const_int(NEXT_CONST_COUNT + 1, crr_val);
+            type = DNT_INT;
+            break;
+          }
+
+          default: {
+            break;
+          }
+        }
+
         break;
       }
       default: {
-        // throuw compilation error
+        char* var;
+        asprintf(&var, "unexpected error, type invalid to '%s'.", GET_STRING_VAL());
+        fatal_compiler(var);
         break;
       }
   }
@@ -219,13 +249,13 @@ static void dc_var() {
   /**
    * Put vars on list to otimizations
    */
-  push_const_table(name, idx, type, GET_GENERIC_VAL());
+  push_const_table(name, idx, type, crr_val);
 }
 
 static void dc_puts() {
   DCSwitch() {
       DCCase(DAT_STRING) {
-        INC_CONST_COUNT;
+        NEXT_CONST_COUNT;
         char* var = get_var_name(dg_const_def);
         dc_puts_str(var, GET_STRING_VAL());
         break;
@@ -242,6 +272,7 @@ static void dc_puts() {
           asprintf(&var, "identifier '%s' not found.", GET_STRING_VAL());
           fatal_compiler(var);
         }
+
         switch (get_type_on_table(GET_STRING_VAL())) {
           case DNT_STRING: {
             dc_puts_idx(gconst_table->idxs[pos]);
@@ -257,7 +288,6 @@ static void dc_puts() {
             break;
           }
         }
-
         break;
       }
       default: {
@@ -417,7 +447,6 @@ static int compiler_process() {
         break;
       }
       DCCase(DAT_STRING) {
-        // dc_const_string();
         break;
       }
       DCCase(DAT_PUTS) {
